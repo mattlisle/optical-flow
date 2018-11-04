@@ -3,11 +3,11 @@
   Author: 
   Date created: 11/4/2018
 
-	• (INPUT) img: H × W matrix representing the grayscale input image
-	• (INPUT) bbox: F × 4 × 2 matrix representing the four corners of the bounding box where F is the number of
+	(INPUT) img: H × W matrix representing the grayscale input image
+	(INPUT) bbox: F × 4 × 2 matrix representing the four corners of the bounding box where F is the number of
 	objects you would like to track
-	• (OUTPUT) x: N × F matrix representing the N row coordinates of the features across F objects
-	• (OUTPUT) y: N × F matrix representing the N column coordinates of the features across F objects
+	(OUTPUT) x: N × F matrix representing the N row coordinates of the features across F objects
+	(OUTPUT) y: N × F matrix representing the N column coordinates of the features across F objects
 
 '''
 
@@ -18,10 +18,10 @@ def getFeatures(img, bbox):
 	import matplotlib.pyplot as plt
 
 	# Save our offsets from the bbox array, not necessary but improves readability
-	xmin = bbox[0]
-	xmax = bbox[1]
-	ymin = bbox[2]
-	ymax = bbox[3]
+	xmin = np.amin(bbox[0, :, 0])
+	xmax = np.amax(bbox[0, :, 0])
+	ymin = np.amin(bbox[0, :, 1])
+	ymax = np.amax(bbox[0, :, 1])
 
 	# Feature points gotten from image bounding box
 	max_pts = 100
