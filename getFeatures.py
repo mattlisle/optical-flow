@@ -17,27 +17,32 @@ def getFeatures(img, bbox):
 	from helpers import anms
 	import matplotlib.pyplot as plt
 
-	# Save our offsets from the bbox array, not necessary but improves readability
-	xmin = np.amin(bbox[0, :, 0])
-	xmax = np.amax(bbox[0, :, 0])
-	ymin = np.amin(bbox[0, :, 1])
-	ymax = np.amax(bbox[0, :, 1])
-
 	# Feature points gotten from image bounding box
-	max_pts = 100
+	max_pts = 50
 
-	# Get the corner strength array from the bouding box area with padding
-	p = 10
-	subimg = img[ymin - p: ymax + p, xmin - p: xmax + p]
+	# Initialize our outputs
+	x = np.zeros((max_pts, bbox.shape[0]))
+	y = np.zeros((max_pts, bbox.shape[0]))
 
-	# For debugging: Show the what's inside the bounding box
-	# plt.imshow(subimg[p:-p, p:-p])
-	# plt.show()
-	
-	# Get corner strength matrix
-	cimg = corner_harris(subimg, k=0.05, sigma=1)[p: -p, p: -p]
+	for i in range(bbox.shape[0]):
+		# Save our offsets from the bbox array, not necessary but improves readability
+		xmin = np.amin(bbox[i, :, 0])
+		xmax = np.amax(bbox[i, :, 0])
+		ymin = np.amin(bbox[i, :, 1])
+		ymax = np.amax(bbox[i, :, 1])
 
-	# Suppress non-maxima
-	x, y = anms(cimg, max_pts, xmin, ymin)
+		# Get the corner strength array from the bouding box area with padding
+		p = 10
+		subimg = img[ymin - p: ymax + p, xmin - p: xmax + p]
+
+		# For debugging: Show the what's inside the bounding box
+		# plt.imshow(subimg[p:-p, p:-p])
+		# plt.show()
+		
+		# Get corner strength matrix
+		cimg = corner_harris(subimg, k=0.05, sigma=1)[p: -p, p: -p]
+
+		# Suppress non-maxima	
+		x[:, i], y[:, i] = anms(cimg, max_pts, xmin, ymin)
 
 	return x, y

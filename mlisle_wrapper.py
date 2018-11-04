@@ -35,7 +35,11 @@ img = rgb2gray(img)
 x, y = getFeatures(img, bbox)
 
 # For debugging: Show the bounding box and the features inside
-# plt.imshow(colorimg)
-# plt.plot(xbox1, ybox1, color="red")
-# plt.scatter(x, y, color="blue")
-# plt.show()
+plt.imshow(colorimg)
+for box in bbox:
+	for i in range(3):
+		plt.plot(box[i: i+2, 0], box[i: i+2, 1], color="red")
+	plt.plot([box[0, 0], box[3, 0]], [box[0, 1], box[3, 1]], color="red")
+for i in range(x.shape[1]):
+	plt.scatter(x[:, i], y[:, i], color="blue")
+plt.show()
