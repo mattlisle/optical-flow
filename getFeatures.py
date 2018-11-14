@@ -18,7 +18,7 @@ def getFeatures(img, bbox):
 	import matplotlib.pyplot as plt
 
 	# Feature points gotten from image bounding box
-	max_pts = 50
+	max_pts = 20
 
 	# Initialize our outputs
 	x = np.zeros((max_pts, bbox.shape[0]))

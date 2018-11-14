@@ -36,7 +36,9 @@ def anms(cimg, max_pts, offsetx, offsety):
   comps[3:, ...] = signal.convolve2d(cimg,  down, mode="same")
 
   # Use comps to create 2d array of local maxima
-  max_locs = np.all(comps > 0, axis=0)
+  pad = 5
+  max_locs = np.all(comps > 0, axis=0)[pad:-pad, pad:-pad] # Not letting in points 10 pixels or closer to boundary
+  max_locs = np.pad(max_locs, ((pad, pad), (pad, pad)), mode="constant")
 
   # ---------- Part 2: Loop through all points and find radii ---------- #
   # Initialize x and y with locations where points clear 4 nearest neighbors
@@ -66,9 +68,9 @@ def anms(cimg, max_pts, offsetx, offsety):
 
   # ---------- Part 3: Construct outputs based on max_pts ---------- #
   sorter = np.argsort(-radii)
-  x = x[sorter]
-  y = y[sorter]
-  radii = radii[sorter]
+  # x = x[sorter]
+  # y = y[sorter]
+  # radii = radii[sorter]
 
   # If we've asked for more than we've got, let the user know
   if max_pts > len(x):
