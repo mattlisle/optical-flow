@@ -16,13 +16,14 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 	import numpy as np
 	from helpers import rgb2gray
 	from scipy import signal
+	import matplotlib.pyplot as plt
 
 	# ---------- Part 1: Setup ---------- #
 
 	# Get images computed to grayscale
 	# For now I'm going to pad the images symmetrically to get W for edges and corners
 	# It will just be important to remember that padding's there when solving for pixel locations
-	window = 11
+	window = 7
 	pad = int((window - 1) / 2)
 	# gray1 = np.pad(rgb2gray(img1), ((pad, pad), (pad, pad)), mode="symmetric")
 	# gray2 = np.pad(rgb2gray(img2), ((pad, pad), (pad, pad)), mode="symmetric")
@@ -38,7 +39,9 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 	# Calculate the gradients
 	Ix = np.gradient(gray1, axis=1)
 	Iy = np.gradient(gray1, axis=0)
-	It = gray2 - gray1
+	It = np.gradient(np.array([gray1, gray2]), axis=0)
+	# plt.imshow(It, cmap="gray")
+	# plt.show()
 
 	# Pull out parameters for looping
 	F = len(startXs)
@@ -69,6 +72,10 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 			A[:, 0] = Ix[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
 			A[:, 1] = Iy[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
 			b[:, 0] = It[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
+
+			error = np.sum(b)
+			if j == 0:
+				print("Error for box %d and feature %d: " % (i, j), error)
 
 			# Solve for [u; v]
 			translation = np.matmul(np.matmul(np.linalg.inv(np.matmul(A.T, A)), A.T), -b)

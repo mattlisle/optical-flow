@@ -7,7 +7,9 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
 from helpers import rgb2gray
+from helpers import generate_output_frame
 from getFeatures import getFeatures
 from estimateAllTranslation import estimateAllTranslation
 from applyGeometricTransformation import applyGeometricTransformation
@@ -24,6 +26,12 @@ img2 = img2[...,::-1]
 box1 = np.array([287, 187, 397, 187, 397, 264, 287, 264]).reshape(4, 2)
 box2 = np.array([223, 123, 277, 123, 277, 168, 223, 168]).reshape(4, 2)
 bbox = np.array([box1, box2])
+
+frame1 = generate_output_frame(np.copy(img1), bbox)
+frame1 = Image.fromarray(frame1)
+frame1.save("easy_frame1.jpg")
+# plt.imshow(frame1)
+# plt.show()
 
 # For debugging: Show the bounding box we've chosen
 # plt.imshow(img1)
@@ -49,7 +57,7 @@ x, y = getFeatures(rgb2gray(img1), bbox)
 warped = np.copy(img1)
 newXs = np.copy(x)
 newYs = np.copy(y)
-iterations = 1
+iterations = 5
 for k in range(iterations):
 	# Get the new feature locations in the next frame
 	updatex, updatey = estimateAllTranslation(newXs, newYs, warped, img2)
@@ -57,6 +65,9 @@ for k in range(iterations):
 	# Warp the image for the next iteration
 	newXs, newYs, bbox, warped = applyGeometricTransformation(newXs, newYs, updatex, updatey, bbox, warped)
 
+frame2 = generate_output_frame(np.copy(img2), bbox)
+frame2 = Image.fromarray(frame2)
+frame2.save("easy_frame2.jpg")
 
 # For debugging: Show the bounding box and the features inside
 plt.imshow(img1)

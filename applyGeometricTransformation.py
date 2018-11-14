@@ -61,9 +61,9 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img):
 		H_init = np.identity(3)[:2]
 
 		# Use least squares to estimate H
-		H = least_squares(inlier_cost_func, H_init.reshape(6), args=(v, u))["x"]
+		H = least_squares(inlier_cost_func, H_init.reshape(6), args=(u, v))["x"]
 		H = np.stack([H[:3], H[3: 6], np.array([0, 0, 1])])
-		print(H)
+		# print(H)
 
 		# --------- Part 2: Update the ith bounding box ---------- #
 		

@@ -34,7 +34,7 @@ def getFeatures(img, bbox):
 		# Get the corner strength array from the bouding box area with padding
 		p = 10
 		subimg = img[ymin - p: ymax + p, xmin - p: xmax + p]
-		print(subimg.shape)
+		# print(subimg.shape)
 
 		# For debugging: Show the what's inside the bounding box
 		# plt.imshow(subimg[p:-p, p:-p])

@@ -6,7 +6,10 @@
 
 def rgb2gray(rgb):
     import numpy as np
-    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+    if len(rgb.shape) == 2:
+      return rgb
+    else:
+      return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
 
 def anms(cimg, max_pts, offsetx, offsety):
@@ -116,3 +119,26 @@ def warp_image(img, H, xmin, xmax, ymin, ymax):
   warped = map_coordinates(img, [transformed[1], transformed[0]]).reshape(h, w).astype(int)
 
   return warped
+
+def generate_output_frame(img, bbox):
+  import numpy as np
+
+  h, w, d = img.shape
+
+  for i in range(bbox.shape[0]):
+    xmin = np.amin(bbox[i, :, 0])
+    xmax = np.amax(bbox[i, :, 0])
+    ymin = np.amin(bbox[i, :, 1])
+    ymax = np.amax(bbox[i, :, 1])
+
+    indexer = np.zeros((h, w), dtype=bool)
+    indexer[ymin: ymin + 2, xmin: xmax + 1] = True
+    indexer[ymax - 1: ymax + 1, xmin: xmax + 1] = True
+    indexer[ymin: ymax + 1, xmin: xmin + 2] = True
+    indexer[ymin: ymax + 1, xmax - 1: xmax + 1] = True
+
+    img[..., 0][indexer] = 255
+    img[..., 1][indexer] = 0
+    img[..., 2][indexer] = 0
+
+  return img
