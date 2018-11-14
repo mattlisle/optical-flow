@@ -57,7 +57,7 @@ x, y = getFeatures(rgb2gray(img1), bbox)
 warped = np.copy(img1)
 newXs = np.copy(x)
 newYs = np.copy(y)
-iterations = 5
+iterations = 3
 for k in range(iterations):
 	# Get the new feature locations in the next frame
 	updatex, updatey = estimateAllTranslation(newXs, newYs, warped, img2)

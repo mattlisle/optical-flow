@@ -82,8 +82,14 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img):
 		# --------- Part 3: Warp the bounding box areas of the image ---------- #
 
 		# Create a sub image that matches the area of the new bounding box and warp that
-		# subimg = gray[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1]  # For debugging
+		subimg = gray[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1]  # For debugging
 		warped = warp_image(gray, H, xmin - pad, xmax + pad + 1, ymin - pad, ymax + pad + 1)
+		# fig, (left, right) = plt.subplots(1, 2, sharey=True)
+		# left.imshow(subimg, cmap="gray")
+		# right.imshow(warped, cmap="gray")
+		# plt.show()
+		plt.imshow(warped - subimg, cmap="gray")
+		plt.show()
 
 		# For now, the warped image assumes that its inside the boundary of the image
 		gray[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1] = warped

@@ -39,7 +39,7 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 	# Calculate the gradients
 	Ix = np.gradient(gray1, axis=1)
 	Iy = np.gradient(gray1, axis=0)
-	It = np.gradient(np.array([gray1, gray2]), axis=0)
+	It = gray2 - gray1  # np.gradient(np.array([gray1, gray2]), axis=0)
 	# plt.imshow(It, cmap="gray")
 	# plt.show()
 
