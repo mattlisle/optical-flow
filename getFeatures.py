@@ -21,8 +21,8 @@ def getFeatures(img, bbox):
 	max_pts = 20
 
 	# Initialize our outputs
-	x = np.zeros((max_pts, bbox.shape[0]))
-	y = np.zeros((max_pts, bbox.shape[0]))
+	x = np.zeros(bbox.shape[0], dtype=object)
+	y = np.zeros(bbox.shape[0], dtype=object)
 
 	for i in range(bbox.shape[0]):
 		# Save our offsets from the bbox array, not necessary but improves readability
@@ -34,6 +34,7 @@ def getFeatures(img, bbox):
 		# Get the corner strength array from the bouding box area with padding
 		p = 10
 		subimg = img[ymin - p: ymax + p, xmin - p: xmax + p]
+		print(subimg.shape)
 
 		# For debugging: Show the what's inside the bounding box
 		# plt.imshow(subimg[p:-p, p:-p])
@@ -43,6 +44,6 @@ def getFeatures(img, bbox):
 		cimg = corner_harris(subimg, k=0.05, sigma=1)[p: -p, p: -p]
 
 		# Suppress non-maxima	
-		x[:, i], y[:, i] = anms(cimg, max_pts, xmin, ymin)
+		x[i], y[i] = anms(cimg, max_pts, xmin, ymin)
 
 	return x, y

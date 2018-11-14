@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from helpers import rgb2gray
 from getFeatures import getFeatures
 from estimateAllTranslation import estimateAllTranslation
+from applyGeometricTransformation import applyGeometricTransformation
 
 cap = cv2.VideoCapture("Easy.mp4")
 ret, img1 = cap.read()
@@ -42,11 +43,20 @@ x, y = getFeatures(rgb2gray(img1), bbox)
 # 		plt.plot(box[i: i+2, 0], box[i: i+2, 1], color="red")
 # 	plt.plot([box[0, 0], box[3, 0]], [box[0, 1], box[3, 1]], color="red")
 # for i in range(x.shape[1]):
-# 	plt.scatter(x[:, i], y[:, i], color="blue")
+# 	plt.scatter(x[i], y[i][:], color="blue")
 # plt.show()
 
-# Get the new feature locations in the next frame
-newXs, newYs = estimateAllTranslation(x, y, img1, img2)
+warped = np.copy(img1)
+newXs = np.copy(x)
+newYs = np.copy(y)
+iterations = 1
+for k in range(iterations):
+	# Get the new feature locations in the next frame
+	updatex, updatey = estimateAllTranslation(newXs, newYs, warped, img2)
+
+	# Warp the image for the next iteration
+	newXs, newYs, bbox, warped = applyGeometricTransformation(newXs, newYs, updatex, updatey, bbox, warped)
+
 
 # For debugging: Show the bounding box and the features inside
 plt.imshow(img1)
@@ -54,7 +64,7 @@ for box in bbox:
 	for i in range(3):
 		plt.plot(box[i: i+2, 0], box[i: i+2, 1], color="red")
 	plt.plot([box[0, 0], box[3, 0]], [box[0, 1], box[3, 1]], color="red")
-for i in range(x.shape[1]):
-	plt.scatter(x[:, i], y[:, i], color="blue")
-	plt.scatter(newXs[:, i], newYs[:, i], color="green")
+for i in range(len(x)):
+	plt.scatter(x[i], y[i], color="blue")
+	plt.scatter(newXs[i][:], newYs[i][:], color="green")
 plt.show()

@@ -82,3 +82,37 @@ def anms(cimg, max_pts, offsetx, offsety):
     y = y[:max_pts]
 
   return x + offsetx, y + offsety
+
+
+def inlier_cost_func(H, x, y):
+  import numpy as np
+
+  H = np.stack([H[:3], H[3:6], np.array([0, 0, 1])])
+  estimates = np.matmul(H, x)
+  residuals = y - estimates / estimates[2]
+
+  h, num_inliers = x.shape
+
+  return residuals.reshape(h * num_inliers)
+
+def warp_image(img, H, xmin, xmax, ymin, ymax):
+  import numpy as np
+  from scipy.ndimage import map_coordinates
+  import matplotlib.pyplot as plt
+
+  x, y = np.meshgrid(np.arange(xmin, xmax), np.arange(ymin, ymax))
+  h, w = x.shape
+
+  # Assignment suggested geometric_transform for this part, but I dunno how to use it, so I'll just brute-force vectorize
+  pts = np.stack([x.reshape(h*w), y.reshape(h*w), np.ones(h*w)])
+
+  Hinv = np.linalg.inv(H)
+  Hinv = Hinv / Hinv[-1, -1]
+
+  transformed = np.zeros((3, h * w))
+  transformed = np.matmul(Hinv, pts)
+  transformed = transformed / transformed[2]
+
+  warped = map_coordinates(img, [transformed[1], transformed[0]]).reshape(h, w).astype(int)
+
+  return warped
