@@ -17,9 +17,6 @@ def getFeatures(img, bbox):
 	from helpers import anms
 	import matplotlib.pyplot as plt
 
-	# Feature points gotten from image bounding box
-	max_pts = 30
-
 	# Initialize our outputs
 	x = np.zeros(bbox.shape[0], dtype=object)
 	y = np.zeros(bbox.shape[0], dtype=object)
@@ -39,6 +36,10 @@ def getFeatures(img, bbox):
 		# For debugging: Show the what's inside the bounding box
 		# plt.imshow(subimg[p:-p, p:-p])
 		# plt.show()
+
+		# Feature points gotten from image bounding box
+		h, w = subimg.shape
+		max_pts = int(h * w * 0.005)
 		
 		# Get corner strength matrix
 		cimg = corner_shi_tomasi(subimg)[p: -p, p: -p]

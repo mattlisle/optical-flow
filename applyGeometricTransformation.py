@@ -14,22 +14,24 @@
 	(OUTPUT) gray: the grayscale warped image for the next iteration of translation estimation
 '''
 
-def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, target):
+def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, target, thresh):
 	import numpy as np
 	from helpers import inlier_cost_func
 	from scipy.optimize import least_squares
 	from helpers import warp_image
 	from helpers import rgb2gray
 	import matplotlib.pyplot as plt
+	from helpers import inlier_cost_func_translation
+	from ransac_est_affine import ransac_est_affine
 
 	F = len(startXs)
-	max_dist = 4
+	max_dist = 100
 	pad = 5
 	gray = rgb2gray(img)
+	output = np.copy(gray)
 	target = rgb2gray(target)
 
 	for i in range(F):
-		N = len(startXs[0])
 
 		# --------- Part 1: Estimate the homography for a given bounding box ---------- #
 
@@ -40,6 +42,7 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		ymax = np.amax(bbox[i, :, 1])
 
 		indexer = np.all(np.stack([newXs[i] > xmin, newXs[i] < xmax, newYs[i] > ymin, newYs[i] < ymax], axis=0))
+		indexer = np.ones(len(startXs[i]), dtype=bool)
 
 		ux = startXs[i][indexer]
 		uy = startYs[i][indexer]
@@ -55,23 +58,18 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		vy = vy[indexer]
 
 		# Form our initial and final feature points in homogeneous coordinates
+		N = len(ux)
 		u = np.stack([ux, uy, np.ones(N)])
 		v = np.stack([vx, vy, np.ones(N)])
 
-		# Initial guess for the homography will be the identity matrix
-		H_init = np.identity(3)[:2]
-		# H_init = np.identity(3)
-
-		# Use least squares to estimate H
-		H = least_squares(inlier_cost_func, H_init.reshape(6), args=(u, v))["x"]
-		H = np.stack([H[:3], H[3: 6], np.array([0, 0, 1])])
-		# H = least_squares(inlier_cost_func, H_init.reshape(9), args=(u, v))["x"].reshape(3, 3)
+		# Use RANSAC to estimate T
+		H, inliers = ransac_est_affine(ux, uy, vx, vy, thresh)
 
 		# --------- Part 2: Update the ith bounding box ---------- #
 		
 		# Apply the homography to the corners
 		corners = np.stack([bbox[i].T[0], bbox[i].T[1], np.ones(4)])
-		corners = np.matmul(np.linalg.inv(H), corners)
+		corners = np.matmul(H, corners)
 		corners = corners / corners[2]
 
 		# Force the bbox to be a rectangle
@@ -79,21 +77,22 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		xmax = int(np.ceil( np.amax(corners[0])))
 		ymin = int(np.floor(np.amin(corners[1])))
 		ymax = int(np.ceil( np.amax(corners[1])))
-		bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
-		# bbox[i, ...] = corners[:2].T
+		# bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
+		bbox[i, ...] = corners[:2].T
 
 		# --------- Part 3: Warp the bounding box areas of the image ---------- #
 
 		# Create a sub image that matches the area of the new bounding box and warp that
-		subimg = target[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1]  # For debugging
-		initial = gray[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1]
-		warped = warp_image(gray, H, xmin - pad, xmax + pad + 1, ymin - pad, ymax + pad + 1)
-		# fig, (left, right) = plt.subplots(1, 2, sharey=True)
-		# left.imshow(subimg, cmap="gray")
-		# right.imshow(warped, cmap="gray")
-		# plt.show()
+		# subimg = target[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1]  # For debugging
+		# initial = gray[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1]
+		# warped = warp_image(gray, H, xmin - pad, xmax + pad + 1, ymin - pad, ymax + pad + 1)
 
 		# For now, the warped image assumes that its inside the boundary of the image
-		gray[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1] = warped
+		# output[ymin - pad: ymax + pad + 1, xmin - pad: xmax + pad + 1] = warped
+		output = gray
 
-	return newXs, newYs, bbox, gray
+		# Update the feature entries to remove outliers
+		newXs[i] = vx
+		newYs[i] = vy
+
+	return newXs, newYs, bbox, output

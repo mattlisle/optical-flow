@@ -24,7 +24,7 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 	# Get images computed to grayscale
 	# For now I'm going to pad the images symmetrically to get W for edges and corners
 	# It will just be important to remember that padding's there when solving for pixel locations
-	window = 7
+	window = 11
 	pad = int((window - 1) / 2)
 	# gray1 = np.pad(rgb2gray(img1), ((pad, pad), (pad, pad)), mode="symmetric")
 	# gray2 = np.pad(rgb2gray(img2), ((pad, pad), (pad, pad)), mode="symmetric")
@@ -47,7 +47,7 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 	It = gray2 - gray1  # np.gradient(np.array([gray1, gray2]), axis=0)
 	# plt.imshow(gray2 - gray1, cmap="gray")
 	# plt.show()
-	print("Total error for this iteration", np.sum(np.abs(It)))
+	# print("Total error for this iteration", np.sum(np.abs(It)))
 	# plt.imshow(It, cmap="gray")
 	# plt.show()
 
@@ -86,9 +86,9 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 			A[:, 1] = interp2(Iy, meshx, meshy).reshape(window**2)  # Iy[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
 			b[:, 0] = interp2(It, meshx, meshy).reshape(window**2)  # It[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
 
-			error = np.sum(np.abs(b))
-			if j == 0:
-				print("Error for box %d and feature %d: " % (i, j), error)
+			# error = np.sum(np.abs(b))
+			# if j == 0:
+			# 	print("Error for box %d and feature %d: " % (i, j), error)
 
 			# Solve for [u; v]
 			translation = np.matmul(np.matmul(np.linalg.inv(np.matmul(A.T, A)), A.T), -b)

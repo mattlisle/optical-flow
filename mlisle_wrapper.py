@@ -58,7 +58,7 @@ nextframe = np.copy(img2)
 warped = np.copy(img1)
 newXs = np.copy(x)
 newYs = np.copy(y)
-iterations = 5
+iterations = 1
 for k in range(iterations):
 	# Get the new feature locations in the next frame
 	updatex, updatey = estimateAllTranslation(newXs, newYs, warped, nextframe)
@@ -71,12 +71,18 @@ frame2 = Image.fromarray(frame2)
 frame2.save("easy_frame2.jpg")
 
 # For debugging: Show the bounding box and the features inside
-plt.imshow(img1)
-for box in bbox:
-	for i in range(3):
-		plt.plot(box[i: i+2, 0], box[i: i+2, 1], color="red")
-	plt.plot([box[0, 0], box[3, 0]], [box[0, 1], box[3, 1]], color="red")
+fig, (left, right) = plt.subplots(1, 2)
+left.imshow(img1)
+# for box in bbox:
+# 	for i in range(3):
+# 		plt.plot(box[i: i+2, 0], box[i: i+2, 1], color="red")
+# 	plt.plot([box[0, 0], box[3, 0]], [box[0, 1], box[3, 1]], color="red")
 for i in range(len(x)):
-	plt.scatter(x[i], y[i], color="blue")
-	plt.scatter(newXs[i][:], newYs[i][:], color="green")
+	left.scatter(x[i], y[i], color="blue")
+	left.scatter(newXs[i][:], newYs[i][:], color="green")
+
+right.imshow(img2)
+for i in range(len(x)):
+	right.scatter(x[i], y[i], color="blue")
+	right.scatter(newXs[i][:], newYs[i][:], color="green")
 plt.show()
