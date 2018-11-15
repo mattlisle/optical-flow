@@ -15,6 +15,7 @@
 def estimateAllTranslation(startXs, startYs, img1, img2):
 	import numpy as np
 	from helpers import rgb2gray
+	from helpers import interp2
 	from scipy import signal
 	import matplotlib.pyplot as plt
 
@@ -35,11 +36,18 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 	gray1 = signal.convolve2d(		   gray1, Gy, mode="full", boundary="symm")
 	gray2 = signal.convolve2d(rgb2gray(img2), Gx, mode="full", boundary="symm")
 	gray2 = signal.convolve2d(		   gray2, Gy, mode="full", boundary="symm")
+	# gray1 = img1
+	# gray2 = img2
 
 	# Calculate the gradients
+	# kx = np.array([[1, -1]])
+	# ky = np.array([[1],[-1]])
 	Ix = np.gradient(gray1, axis=1)
 	Iy = np.gradient(gray1, axis=0)
 	It = gray2 - gray1  # np.gradient(np.array([gray1, gray2]), axis=0)
+	# plt.imshow(gray2 - gray1, cmap="gray")
+	# plt.show()
+	print("Total error for this iteration", np.sum(np.abs(It)))
 	# plt.imshow(It, cmap="gray")
 	# plt.show()
 
@@ -65,20 +73,26 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 		for j in range(N):
 
 			# Get our feature location
-			fx = int(startXs[i][j]) + pad
-			fy = int(startYs[i][j]) + pad
+			fx = startXs[i][j] + pad
+			fy = startYs[i][j] + pad
+
+			# Generate a meshgrid for interpolating
+			meshx, meshy = np.meshgrid(np.arange(window), np.arange(window))
+			meshx = meshx + fx
+			meshy = meshy + fy
 
 			# Build A and b from A*[u; v] = b centered around the feature location
-			A[:, 0] = Ix[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
-			A[:, 1] = Iy[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
-			b[:, 0] = It[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
+			A[:, 0] = interp2(Ix, meshx, meshy).reshape(window**2)  # Ix[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
+			A[:, 1] = interp2(Iy, meshx, meshy).reshape(window**2)  # Iy[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
+			b[:, 0] = interp2(It, meshx, meshy).reshape(window**2)  # It[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
 
-			error = np.sum(b)
+			error = np.sum(np.abs(b))
 			if j == 0:
 				print("Error for box %d and feature %d: " % (i, j), error)
 
 			# Solve for [u; v]
 			translation = np.matmul(np.matmul(np.linalg.inv(np.matmul(A.T, A)), A.T), -b)
+			# print(translation)
 
 			# Save our result into our output
 			newXs[i][j] = startXs[i][j] + translation[0]

@@ -54,16 +54,17 @@ x, y = getFeatures(rgb2gray(img1), bbox)
 # 	plt.scatter(x[i], y[i][:], color="blue")
 # plt.show()
 
+nextframe = np.copy(img2)
 warped = np.copy(img1)
 newXs = np.copy(x)
 newYs = np.copy(y)
-iterations = 3
+iterations = 5
 for k in range(iterations):
 	# Get the new feature locations in the next frame
-	updatex, updatey = estimateAllTranslation(newXs, newYs, warped, img2)
+	updatex, updatey = estimateAllTranslation(newXs, newYs, warped, nextframe)
 
 	# Warp the image for the next iteration
-	newXs, newYs, bbox, warped = applyGeometricTransformation(newXs, newYs, updatex, updatey, bbox, warped)
+	newXs, newYs, bbox, warped = applyGeometricTransformation(newXs, newYs, updatex, updatey, bbox, warped, nextframe)
 
 frame2 = generate_output_frame(np.copy(img2), bbox)
 frame2 = Image.fromarray(frame2)

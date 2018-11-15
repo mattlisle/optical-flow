@@ -13,12 +13,12 @@
 
 def getFeatures(img, bbox):
 	import numpy as np
-	from skimage.feature import corner_harris
+	from skimage.feature import corner_shi_tomasi
 	from helpers import anms
 	import matplotlib.pyplot as plt
 
 	# Feature points gotten from image bounding box
-	max_pts = 20
+	max_pts = 30
 
 	# Initialize our outputs
 	x = np.zeros(bbox.shape[0], dtype=object)
@@ -41,7 +41,7 @@ def getFeatures(img, bbox):
 		# plt.show()
 		
 		# Get corner strength matrix
-		cimg = corner_harris(subimg, k=0.05, sigma=1)[p: -p, p: -p]
+		cimg = corner_shi_tomasi(subimg)[p: -p, p: -p]
 
 		# Suppress non-maxima	
 		x[i], y[i] = anms(cimg, max_pts, xmin, ymin)
