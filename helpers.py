@@ -229,3 +229,49 @@ def est_affine(x1, x2):
     T = np.identity(3)
 
   return T
+
+def est_homography(x1, x2):
+  import numpy as np
+
+  A = np.zeros((8,9))
+
+  num_points = x1.shape[1]
+
+  for i in range(num_points):
+      # Build A[:,0:6]
+      A[2*i: 2*i+2, 0:6][0,0:3] = x1.T[i]
+      A[2*i: 2*i+2, 0:6][1,3:6] = x1.T[i]
+
+      # Build A[:,6:]
+      u = x1[:,i].reshape(1,3)
+      v = x2[0:2,i].reshape(2,1)
+      A[2*i:2*i+2, 6:] = -1 * np.dot(v,u)
+
+  b = np.zeros((9,1))
+  # H = np.linalg.solve(A, np.zeros((9,1)))
+  H = A
+
+  return H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
