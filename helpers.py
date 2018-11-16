@@ -248,8 +248,8 @@ def est_homography(x1, x2):
       A[2*i:2*i+2, 6:] = -1 * np.dot(v,u)
 
   b = np.zeros((9,1))
-  # H = np.linalg.solve(A, np.zeros((9,1)))
-  H = A
+  u, s, v = np.linalg.svd(A, full_matrices=True)
+  H = (v[:,8] / v[8,8]).reshape(3,3).T
 
   return H
 

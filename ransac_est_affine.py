@@ -13,6 +13,7 @@ def ransac_est_affine(x1, y1, x2, y2, thresh):
 	from scipy.optimize import least_squares
 	from helpers import inlier_cost_func
 	from helpers import est_affine
+	from helpers import est_homography
 
 	# Number of RANSAC trials
 	t = 10
@@ -25,11 +26,12 @@ def ransac_est_affine(x1, y1, x2, y2, thresh):
 
 	for i in range(t):
 		# Choose 3 points randomly and estimate a homography
-		choices = np.random.choice(n, 3, replace=False)
-		T = est_affine(np.stack([x1[choices], y1[choices], np.ones(3)]), np.stack([x2[choices], y2[choices], np.ones(3)]))
+		choices = np.random.choice(n, 4, replace=False)
+		H = est_homography(np.stack([x1[choices], y1[choices], np.ones(4)]), np.stack([x2[choices], y2[choices], np.ones(4)]))
+		# T = est_affine(np.stack([x1[choices], y1[choices], np.ones(4)]), np.stack([x2[choices], y2[choices], np.ones(4)]))
 
 		# Use the homography to transform points from img1 to estimated postions in img2
-		estimates = np.matmul(T, np.stack([x1, y1, z]))
+		estimates = np.matmul(H, np.stack([x1, y1, z]))
 
 		# Normalize the estimates and extract x and y
 		estimates = estimates / estimates[-1]

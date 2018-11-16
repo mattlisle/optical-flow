@@ -17,7 +17,7 @@ from applyGeometricTransformation import applyGeometricTransformation
 imgs = np.array([])
 cap = cv2.VideoCapture("Easy.mp4")
 ret, img1 = cap.read()
-img1 = img1[...,::-1]
+img1 = img1[...,::-1] # BGR to RGB
 
 # For now, manually draw the bounding box and forget about cv2.boundingRect()
 box1 = np.array([287, 187, 397, 187, 397, 264, 287, 264]).reshape(4, 2)
@@ -27,12 +27,13 @@ bbox = np.array([box1])
 orig_box = np.copy(bbox)
 
 f = 0
-frame = generate_output_frame(np.copy(img1), bbox)
+frame = generate_output_frame(np.copy(img1), bbox) # Draws the bounding box onto the frame
 frame = Image.fromarray(frame)
-frame.save("easy_frame%d.jpg" % f)
+frame.save("easy_frames/%d.jpg" % f)
 
 
 # Get the features from inside the bounding box
+# Applies corner_shi_tomasi and anms to get the features
 x, y = getFeatures(rgb2gray(img1), bbox)
 
 newXs = np.copy(x)
@@ -53,6 +54,8 @@ while f < 159:
 	a += 1
 	if not f % 10:
 		a = 1
+
+                # Get the bounding box coordinates
 		for i in range(len(bbox)):
 			xmin = np.amin(bbox[i, :, 0])
 			xmax = np.amax(bbox[i, :, 0])
@@ -60,12 +63,15 @@ while f < 159:
 			ymax = np.amax(bbox[i, :, 1])
 			bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
 			orig_box = np.copy(bbox)
+
+                # Get coordinates of features for each bounding box
 		x, y = getFeatures(rgb2gray(img1), bbox)
 		newXs = np.copy(x)
 		newYs = np.copy(y)
 
 	thresh = .2 + .02 * a
 
+        # Get the next frame
 	ret, img2 = cap.read()
 	img2 = img2[...,::-1]
 
@@ -79,7 +85,7 @@ while f < 159:
 
 	frame = generate_output_frame(np.copy(img2), bbox)
 	frame = Image.fromarray(frame)
-	frame.save("easy_frame%d.jpg" % f)
+	frame.save("easy_frames/%d.jpg" % f)
 
 	img1 = np.copy(img2)
 
