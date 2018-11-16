@@ -134,7 +134,7 @@ def warp_image(img, H, xmin, xmax, ymin, ymax):
 
   return warped
 
-def generate_output_frame(img, bbox):
+def generate_output_frame(img, bbox, indexer):
   import numpy as np
 
   h, w, d = img.shape
@@ -145,7 +145,7 @@ def generate_output_frame(img, bbox):
     ymin = np.amin(bbox[i, :, 1])
     ymax = np.amax(bbox[i, :, 1])
 
-    indexer = np.zeros((h, w), dtype=bool)
+    # indexer = np.zeros((h, w), dtype=bool)
     indexer[ymin: ymin + 2, xmin: xmax + 1] = True
     indexer[ymax - 1: ymax + 1, xmin: xmax + 1] = True
     indexer[ymin: ymax + 1, xmin: xmin + 2] = True

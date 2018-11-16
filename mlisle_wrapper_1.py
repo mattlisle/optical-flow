@@ -18,6 +18,7 @@ imgs = np.array([])
 cap = cv2.VideoCapture("Easy.mp4")
 ret, img1 = cap.read()
 img1 = img1[...,::-1]
+h, w, d = img1.shape
 
 # For now, manually draw the bounding box and forget about cv2.boundingRect()
 box1 = np.array([287, 187, 397, 187, 397, 264, 287, 264]).reshape(4, 2)
@@ -25,9 +26,11 @@ box2 = np.array([223, 123, 277, 123, 277, 168, 223, 168]).reshape(4, 2)
 bbox = np.array([box1, box2])
 # bbox = np.array([box1])
 orig_box = np.copy(bbox)
+centers = np.zeros((len(bbox), 2))
+trajectory_indexer = np.zeros((h, w), dtype=bool)
 
 f = 0
-frame = generate_output_frame(np.copy(img1), bbox)
+frame = generate_output_frame(np.copy(img1), bbox, np.copy(trajectory_indexer))
 frame = Image.fromarray(frame)
 frame.save("easy_frame%d.jpg" % f)
 
@@ -48,7 +51,7 @@ newYs = np.copy(y)
 # for i in range(len(x)):
 # 	left.scatter(x[i], y[i], color="blue")
 a = 0
-while f < 159:
+while f < 99:
 	f += 1
 	a += 1
 	if not f % 10:
@@ -74,10 +77,30 @@ while f < 159:
 	# Get the new feature locations in the next frame
 	updatex, updatey = estimateAllTranslation(newXs, newYs, np.copy(img1), np.copy(img2))
 
+	for k in range(len(bbox)):
+		centers[k] = np.array([np.mean(bbox[k, :, 0]), np.mean(bbox[k, :, 1])]).astype(int)
+
 	# Warp the image for the next iteration
 	newXs, newYs, bbox, warped = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), np.copy(img2), 0.4)
 
-	frame = generate_output_frame(np.copy(img2), bbox)
+	for k in range(len(bbox)):
+		xcen = int(np.mean(bbox[k, :, 0]))
+		ycen = int(np.mean(bbox[k, :, 1]))
+		num = int(max([abs(xcen - centers[k, 0]), abs(ycen - centers[k, 1])]))
+		centerx = np.linspace(centers[k, 0], xcen + 1, num).astype(int)
+		centery = np.linspace(centers[k, 1], ycen + 1, num).astype(int)
+		if centerx.size > 0 and centery.size > 0:
+			trajectory_indexer[centery, centerx] = True
+			trajectory_indexer[centery + 1, centerx] = True
+			trajectory_indexer[centery, centerx + 1] = True
+			trajectory_indexer[centery + 1, centerx + 1] = True
+		else:
+			trajectory_indexer[ycen, xcen] = True
+			trajectory_indexer[ycen + 1, xcen] = True
+			trajectory_indexer[ycen, xcen + 1] = True
+			trajectory_indexer[ycen + 1, xcen + 1] = True
+
+	frame = generate_output_frame(np.copy(img2), bbox, np.copy(trajectory_indexer))
 	frame = Image.fromarray(frame)
 	frame.save("easy_frame%d.jpg" % f)
 
