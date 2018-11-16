@@ -67,7 +67,7 @@ def estimateAllTranslation(startXs, startYs, img1, img2):
 
 	# For now just running one iteration, not sure where the iterations are supposed to happen
 	for i in range(F):
-		N = len(startXs[0])
+		N = len(startXs[i])
 		newXs[i] = np.zeros(N)
 		newYs[i] = np.zeros(N)
 		for j in range(N):

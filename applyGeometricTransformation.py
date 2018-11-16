@@ -30,6 +30,7 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 	gray = rgb2gray(img)
 	output = np.copy(gray)
 	target = rgb2gray(target)
+	h, w = gray.shape
 
 	for i in range(F):
 
@@ -70,14 +71,15 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		# Apply the homography to the corners
 		corners = np.stack([bbox[i].T[0], bbox[i].T[1], np.ones(4)])
 		corners = np.matmul(H, corners)
-		corners = corners / corners[2]
+		corners = corners / corners[2]  # unnecessary for affine transformations
+		
+		# Restrict the bounding box to the image frame
+		corners[corners < 0] = 0
+		corners[0][corners[0] >= w] = w - 1
+		corners[1][corners[1] >= h] = h - 1
 
-		# Force the bbox to be a rectangle
-		xmin = int(np.floor(np.amin(corners[0])))
-		xmax = int(np.ceil( np.amax(corners[0])))
-		ymin = int(np.floor(np.amin(corners[1])))
-		ymax = int(np.ceil( np.amax(corners[1])))
-		# bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
+
+		# Update the corners of the box
 		bbox[i, ...] = corners[:2].T
 
 		# --------- Part 3: Warp the bounding box areas of the image ---------- #

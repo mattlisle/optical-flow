@@ -22,8 +22,8 @@ img1 = img1[...,::-1]
 # For now, manually draw the bounding box and forget about cv2.boundingRect()
 box1 = np.array([287, 187, 397, 187, 397, 264, 287, 264]).reshape(4, 2)
 box2 = np.array([223, 123, 277, 123, 277, 168, 223, 168]).reshape(4, 2)
-# bbox = np.array([box1, box2])
-bbox = np.array([box1])
+bbox = np.array([box1, box2])
+# bbox = np.array([box1])
 orig_box = np.copy(bbox)
 
 f = 0
@@ -54,10 +54,10 @@ while f < 159:
 	if not f % 10:
 		a = 1
 		for i in range(len(bbox)):
-			xmin = np.amin(bbox[i, :, 0])
-			xmax = np.amax(bbox[i, :, 0])
-			ymin = np.amin(bbox[i, :, 1])
-			ymax = np.amax(bbox[i, :, 1])
+			xmin = np.sort(bbox[i, :, 0])[0]
+			xmax = np.sort(bbox[i, :, 0])[3]
+			ymin = np.sort(bbox[i, :, 1])[0]
+			ymax = np.sort(bbox[i, :, 1])[3]
 			bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
 			orig_box = np.copy(bbox)
 		x, y = getFeatures(rgb2gray(img1), bbox)

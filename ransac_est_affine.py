@@ -15,7 +15,7 @@ def ransac_est_affine(x1, y1, x2, y2, thresh):
 	from helpers import est_affine
 
 	# Number of RANSAC trials
-	t = 10
+	t = 20
 
 	# Length of matching points arrays
 	n = len(x1)
