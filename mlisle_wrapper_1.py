@@ -13,6 +13,7 @@ from helpers import generate_output_frame
 from getFeatures import getFeatures
 from estimateAllTranslation import estimateAllTranslation
 from applyGeometricTransformation import applyGeometricTransformation
+from calculateError import calculateError
 
 imgs = np.array([])
 cap = cv2.VideoCapture("Easy.mp4")
@@ -75,7 +76,7 @@ while f < 99:
 	iterations = 1
 
 	# Get the new feature locations in the next frame
-	updatex, updatey = estimateAllTranslation(newXs, newYs, np.copy(img1), np.copy(img2))
+	updatex, updatey = estimateAllTranslation(newXs, newYs, np.copy(img1), np.copy(img2), bbox)
 
 	for k in range(len(bbox)):
 		centers[k] = np.array([np.mean(bbox[k, :, 0]), np.mean(bbox[k, :, 1])]).astype(int)

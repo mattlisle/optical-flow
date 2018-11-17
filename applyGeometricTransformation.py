@@ -53,6 +53,7 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		# Now remove points who traveled to far between frames
 		distances = np.sqrt(np.square(vx - ux) + np.square(vy - uy))
 		indexer = distances < max_dist 
+		indexer = np.ones(len(startXs[i]), dtype=bool)
 		ux = ux[indexer]
 		uy = uy[indexer]
 		vx = vx[indexer]

@@ -55,9 +55,9 @@ def anms(cimg, max_pts, offsetx, offsety):
 
   # Sort these values in decreasing order
   sorter = np.argsort(-values)
-  x = x[sorter]
-  y = y[sorter]
-  values = values[sorter]
+  # x = x[sorter]
+  # y = y[sorter]
+  # values = values[sorter]
 
   # Initialize array of radii for each interest point, already know value for first pt
   radii = np.zeros(len(values))
