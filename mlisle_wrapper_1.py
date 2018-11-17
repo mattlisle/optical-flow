@@ -8,8 +8,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-from helpers import rgb2gray
-from helpers import generate_output_frame
+from helpers import rgb2gray, generate_output_frame, gen_video
 from getFeatures import getFeatures
 from estimateAllTranslation import estimateAllTranslation
 from applyGeometricTransformation import applyGeometricTransformation
@@ -35,7 +34,8 @@ frame = generate_output_frame(np.copy(img1), bbox, np.copy(trajectory_indexer))
 frame = Image.fromarray(frame)
 frame.save("easy_frame%d.jpg" % f)
 
-
+all_frames = []
+all_frames.append(frame)
 # Get the features from inside the bounding box
 x, y = getFeatures(rgb2gray(img1), bbox)
 
@@ -103,11 +103,14 @@ while f < 99:
 
 	frame = generate_output_frame(np.copy(img2), bbox, np.copy(trajectory_indexer))
 	frame = Image.fromarray(frame)
-	frame.save("easy_frame%d.jpg" % f)
-
+	# frame.save("easy_frame%d.jpg" % f)
+	all_frames.append(frame)
 	img1 = np.copy(img2)
 
 cap.release()
+
+np_frames = np.array([np.array(f) for f in all_frames])
+gen_video(np.array(np_frames), "easy_tracking.avi")
 
 # right.imshow(img2)
 

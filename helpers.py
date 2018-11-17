@@ -240,3 +240,16 @@ def est_affine(x1, x2):
     T = np.identity(3)
 
   return T
+
+
+def gen_video(frames, filename):
+  import cv2
+  fourcc = cv2.VideoWriter_fourcc(*'XVID')
+  h, w, c = frames[0].shape
+  out = cv2.VideoWriter(filename, fourcc, 20.0, (w,h))
+
+  for i in range(frames.shape[0]):
+      out.write(frames[i])
+
+  out.release()
+
