@@ -247,31 +247,8 @@ def est_homography(x1, x2):
       v = x2[0:2,i].reshape(2,1)
       A[2*i:2*i+2, 6:] = -1 * np.dot(v,u)
 
-  b = np.zeros((9,1))
+  # From Image Mosaic lecture, slide 13
   u, s, v = np.linalg.svd(A, full_matrices=True)
   H = (v[:,8] / v[8,8]).reshape(3,3).T
 
   return H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
