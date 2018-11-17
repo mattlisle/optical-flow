@@ -71,9 +71,9 @@ def anms(cimg, max_pts, offsetx, offsety):
 
   # ---------- Part 3: Construct outputs based on max_pts ---------- #
   sorter = np.argsort(-radii)
-  # x = x[sorter]
-  # y = y[sorter]
-  # radii = radii[sorter]
+  x = x[sorter]
+  y = y[sorter]
+  radii = radii[sorter]
 
   # If we've asked for more than we've got, let the user know
   if max_pts > len(x):
