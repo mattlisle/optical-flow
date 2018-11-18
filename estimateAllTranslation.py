@@ -111,6 +111,6 @@ def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 				newYs[i] = np.copy(potYs)
 				origXs[i] = np.copy(tempOrigXs)
 				origYs[i] = np.copy(tempOrigYs)
-			print(i, iters, error)
+			# print(i, iters, error)
 
 	return newXs, newYs, origXs, origYs

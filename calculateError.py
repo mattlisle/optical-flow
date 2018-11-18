@@ -37,7 +37,9 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, Ix, Iy, box):
 
 	indexer = np.all(np.stack([newXs > xmin + pad, newXs < xmax - pad, newYs > ymin + pad, newYs < ymax - pad], axis=0), axis=0)
 	distances = np.sqrt(np.square(newXs - startXs) + np.square(newYs - startYs))
-	indexer = np.logical_and(indexer, np.logical_and(distances < max_dist, distances > 0))
+	avg_dist = np.mean(distances)
+	std_dist = np.std(distances)
+	indexer = np.logical_and(indexer, np.logical_and(distances < avg_dist + 4*std_dist, distances > avg_dist - 2*std_dist))
 	# avg_dist = np.mean(distances)
 	# std_dist = np.std(distances)
 	# indexer = np.logical_and(distances < avg_dist + 1.8*std_dist, distances > avg_dist - 1.8*std_dist)
