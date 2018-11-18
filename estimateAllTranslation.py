@@ -12,7 +12,7 @@
 '''
 
 
-def estimateAllTranslation(startXs, startYs, img1, img2, bbox):
+def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 	import numpy as np
 	from helpers import rgb2gray
 	from helpers import interp2
@@ -36,17 +36,18 @@ def estimateAllTranslation(startXs, startYs, img1, img2, bbox):
 	gray2 = signal.convolve2d(rgb2gray(img2), Gx, mode="full", boundary="symm")
 	gray2 = signal.convolve2d(		   gray2, Gy, mode="full", boundary="symm")
 
-	# # Calculate the gradients
-	# Ix = np.gradient(gray1, axis=1)
-	# Iy = np.gradient(gray1, axis=0)
-	# It = gray2 - gray1
-
 	# Pull out parameters for looping
 	F = len(startXs)
 
 	# Initialize our outputs
 	newXs = np.zeros(F, dtype=object)
 	newYs = np.zeros(F, dtype=object)
+
+	# Calculate the gradients
+	kx = np.array([[1, -1]])
+	ky = np.array([[1], [-1]])
+	Ix = signal.convolve2d(gray1, kx, mode="same")
+	Iy = signal.convolve2d(gray1, ky, mode="same")
 
 	# ---------- Part 2: Caluclate the feature translations ---------- #
 
@@ -58,21 +59,24 @@ def estimateAllTranslation(startXs, startYs, img1, img2, bbox):
 	# For now just running one iteration, not sure where the iterations are supposed to happen
 	for i in range(F):
 		error = np.nan_to_num(np.Inf)
+		min_error = error.copy()
 		iters = 0
-		N = len(startXs[i])
-		newXs[i] = np.zeros(N)
-		newYs[i] = np.zeros(N)
-		while error > 5000 and iters < 3:
-			# Calculate the gradients
-			Ix = np.gradient(gray1, axis=1)
-			Iy = np.gradient(gray1, axis=0)
+
+		tempOrigXs = np.copy(origXs[i])
+		tempOrigYs = np.copy(origYs[i])
+
+		while error > 5000 and iters < 5:
+			N = len(startXs[i])
+			potXs = np.zeros(N)
+			potYs = np.zeros(N)
+
 			It = gray2 - gray1
 			iters += 1
 			for j in range(N):
 
 				# Get our feature location
-				fx = startXs[i][j] + pad
-				fy = startYs[i][j] + pad
+				fx = startXs[i][j]
+				fy = startYs[i][j]
 
 				# Generate a meshgrid for interpolating
 				meshx, meshy = np.meshgrid(np.arange(window), np.arange(window))
@@ -85,13 +89,28 @@ def estimateAllTranslation(startXs, startYs, img1, img2, bbox):
 				b[:, 0] = interp2(It, meshx, meshy).reshape(window**2)  # It[fy - pad: fy + pad + 1, fx - pad: fx + pad + 1].reshape(window**2)
 
 				# Solve for [u; v]
-				translation = np.matmul(np.matmul(np.linalg.inv(np.matmul(A.T, A)), A.T), -b)
+				try:
+					translation = np.matmul(np.matmul(np.linalg.inv(np.matmul(A.T, A)), A.T), -b)
+				except np.linalg.LinAlgError:
+					translation = np.array([0,0])
 
 				# Save our result into our output
-				newXs[i][j] = startXs[i][j] + translation[0]
-				newYs[i][j] = startYs[i][j] + translation[1]
+				potXs[j] = startXs[i][j] + translation[0]
+				potYs[j] = startYs[i][j] + translation[1]
 
-			error, gray1 = calculateError(startXs[i], startYs[i], newXs[i], newYs[i], np.copy(gray1), np.copy(gray2), np.copy(bbox[i]))
+			error, gray1, indexer, Ix, Iy, potXs, potYs = calculateError(startXs[i], startYs[i], potXs, potYs, np.copy(gray1), np.copy(gray2), Ix, Iy, np.copy(bbox[i]))
+
+			startXs[i] = np.copy(potXs)
+			startYs[i] = np.copy(potYs)
+			tempOrigXs = tempOrigXs[indexer]
+			tempOrigYs = tempOrigYs[indexer]
+
+			if error < min_error:
+				min_error = error.copy()
+				newXs[i] = np.copy(potXs)
+				newYs[i] = np.copy(potYs)
+				origXs[i] = np.copy(tempOrigXs)
+				origYs[i] = np.copy(tempOrigYs)
 			print(i, iters, error)
 
-	return newXs, newYs	
+	return newXs, newYs, origXs, origYs

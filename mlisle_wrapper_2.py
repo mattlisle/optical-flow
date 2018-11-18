@@ -29,29 +29,30 @@ orig_box = np.copy(bbox)
 centers = np.zeros((len(bbox), 2))
 trajectory_indexer = np.zeros((h, w), dtype=bool)
 
-f = 0
-frame = generate_output_frame(np.copy(img1), bbox, np.copy(trajectory_indexer))
-frame = Image.fromarray(frame)
-frame.save("easy_frame%d.jpg" % f)
-
 # Get the features from inside the bounding box
 x, y = getFeatures(rgb2gray(img1), bbox)
 
 newXs = np.copy(x)
 newYs = np.copy(y)
 
+f = 0
+frame = generate_output_frame(np.copy(img1), bbox, np.copy(trajectory_indexer), np.copy(newXs), np.copy(newYs))
+frame = Image.fromarray(frame)
+frame.save("easy_frame%d.jpg" % f)
+
 a = 0
 while ret:
 	f += 1
 	a += 1
-	if not f % 5:
+	if not f % 8:
+		print("Frame: ", f)
 		a = 1
 		for i in range(len(bbox)):
-			xmin = np.sort(bbox[i, :, 0])[0]
-			xmax = np.sort(bbox[i, :, 0])[3]
-			ymin = np.sort(bbox[i, :, 1])[0]
-			ymax = np.sort(bbox[i, :, 1])[3]
-			bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
+			# xmin = np.sort(bbox[i, :, 0])[0]
+			# xmax = np.sort(bbox[i, :, 0])[3]
+			# ymin = np.sort(bbox[i, :, 1])[0]
+			# ymax = np.sort(bbox[i, :, 1])[3]
+			# bbox[i, ...] = np.array([xmin, ymin, xmax, ymin, xmax, ymax, xmin, ymax]).reshape(4,2)
 			orig_box = np.copy(bbox)
 		x, y = getFeatures(rgb2gray(img1), bbox)
 		newXs = np.copy(x)
@@ -65,13 +66,13 @@ while ret:
 	iterations = 1
 
 	# Get the new feature locations in the next frame
-	updatex, updatey = estimateAllTranslation(newXs, newYs, np.copy(img1), np.copy(img2), np.copy(bbox))
+	updatex, updatey, x, y = estimateAllTranslation(newXs, newYs, np.copy(x), np.copy(y), np.copy(img1), np.copy(img2), np.copy(bbox))
 
 	for k in range(len(bbox)):
 		centers[k] = np.array([np.mean(bbox[k, :, 0]), np.mean(bbox[k, :, 1])]).astype(int)
 
 	# Warp the image for the next iteration
-	newXs, newYs, bbox, warped = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), np.copy(img2), 0.4)
+	newXs, newYs, bbox, warped = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), np.copy(img2), thresh)
 
 	for k in range(len(bbox)):
 		xcen = int(np.mean(bbox[k, :, 0]))
@@ -90,7 +91,7 @@ while ret:
 			trajectory_indexer[ycen, xcen + 1] = True
 			trajectory_indexer[ycen + 1, xcen + 1] = True
 
-	frame = generate_output_frame(np.copy(img2), bbox, np.copy(trajectory_indexer))
+	frame = generate_output_frame(np.copy(img2), bbox, np.copy(trajectory_indexer), np.copy(newXs), np.copy(newYs))
 	frame = Image.fromarray(frame)
 	frame.save("medium_frame%d.jpg" % f)
 

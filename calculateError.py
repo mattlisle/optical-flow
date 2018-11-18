@@ -8,7 +8,7 @@
 '''
 
 
-def calculateError(startXs, startYs, newXs, newYs, img1, img2, box):
+def calculateError(startXs, startYs, newXs, newYs, img1, img2, Ix, Iy, box):
 	import numpy as np
 	from helpers import rgb2gray
 	from helpers import interp2
@@ -35,10 +35,17 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, box):
 	ymin = max([np.amin(box[:, 1]) - pad, 0])
 	ymax = min([np.amax(box[:, 1]) + pad + 1, h])
 
-	# Remove points who traveled to far between frames
+	indexer = np.all(np.stack([newXs > xmin + pad, newXs < xmax - pad, newYs > ymin + pad, newYs < ymax - pad], axis=0), axis=0)
 	distances = np.sqrt(np.square(newXs - startXs) + np.square(newYs - startYs))
-	indexer = distances < max_dist
-	indexer = np.ones(len(startXs), dtype=bool)  # Overwrite this for now
+	indexer = np.logical_and(indexer, np.logical_and(distances < max_dist, distances > 0))
+	# avg_dist = np.mean(distances)
+	# std_dist = np.std(distances)
+	# indexer = np.logical_and(distances < avg_dist + 1.8*std_dist, distances > avg_dist - 1.8*std_dist)
+	if not np.all(indexer):
+		removed = len(indexer) - np.sum(indexer)
+		total = len(indexer)
+		print("Removed %d out of %d points" % (removed, total))
+
 	ux = startXs[indexer]
 	uy = startYs[indexer]
 	vx = newXs[indexer]
@@ -51,17 +58,21 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, box):
 
 	T = least_squares(inlier_cost_func, np.identity(3)[:2].reshape(6), args=(u, v))["x"].reshape(2, 3)
 	T = np.concatenate((T, np.array([[0, 0, 1]])))
-	# t = v - u
-	# tx = np.mean(t[0])
-	# ty = np.mean(t[1])
-	# T = np.identity(3)
-	# T[0, 2] = tx
-	# T[1, 2] = ty
+
+	newXs = np.matmul(T, u)[0]
+	newYs = np.matmul(T, u)[1]
 
 	target_area = target[ymin: ymax, xmin: xmax]
 	source_area = source[ymin: ymax, xmin: xmax]
+
 	warped_area = warp_image(source, T, xmin, xmax, ymin, ymax)
 	source_warped[ymin: ymax, xmin: xmax] = warped_area
+
+	Ix_area = warp_image(Ix, T, xmin, xmax, ymin, ymax)
+	Ix[ymin: ymax, xmin: xmax] = Ix_area
+
+	Iy_area = warp_image(Iy, T, xmin, xmax, ymin, ymax)
+	Iy[ymin: ymax, xmin: xmax] = Iy_area
 
 	interpx = np.array([newXs])
 	interpy = np.array([newYs])
@@ -70,4 +81,4 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, box):
 
 	error = np.sum(np.square(values_next - values_this)) / len(newXs)
 
-	return error, source_warped
+	return error, source_warped, indexer, Ix, Iy, newXs, newYs

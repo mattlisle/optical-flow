@@ -51,7 +51,7 @@ def anms(cimg, max_pts, offsetx, offsety):
   # Debugging print statement
   total = cimg.shape[0] * cimg.shape[1]
   maxes = len(values)
-  print("%d maxima from %d points" % (maxes, total))
+  # print("%d maxima from %d points" % (maxes, total))
 
   # Sort these values in decreasing order
   sorter = np.argsort(-values)
@@ -134,26 +134,37 @@ def warp_image(img, H, xmin, xmax, ymin, ymax):
 
   return warped
 
-def generate_output_frame(img, bbox, indexer):
+def generate_output_frame(img, bbox, traj_indexer, xs, ys):
   import numpy as np
 
   h, w, d = img.shape
 
   for i in range(bbox.shape[0]):
+    x = xs[i].astype(int)
+    y = ys[i].astype(int)
+
     xmin = np.amin(bbox[i, :, 0])
     xmax = np.amax(bbox[i, :, 0])
     ymin = np.amin(bbox[i, :, 1])
     ymax = np.amax(bbox[i, :, 1])
 
-    # indexer = np.zeros((h, w), dtype=bool)
+    indexer = np.zeros((h, w), dtype=bool)
     indexer[ymin: ymin + 2, xmin: xmax + 1] = True
     indexer[ymax - 1: ymax + 1, xmin: xmax + 1] = True
     indexer[ymin: ymax + 1, xmin: xmin + 2] = True
     indexer[ymin: ymax + 1, xmax - 1: xmax + 1] = True
 
+    for j in range(len(x)):
+      indexer[y[j] - 2: y[j] + 3, x[j] - 2: x[j] + 3] = True
+
     img[..., 0][indexer] = 255
     img[..., 1][indexer] = 0
     img[..., 2][indexer] = 0
+
+    img[..., 0][traj_indexer] = 0
+    img[..., 1][traj_indexer] = 255
+    img[..., 2][traj_indexer] = 0
+
 
   return img
 

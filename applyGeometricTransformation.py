@@ -42,7 +42,7 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		ymin = np.amin(bbox[i, :, 1])
 		ymax = np.amax(bbox[i, :, 1])
 
-		indexer = np.all(np.stack([newXs[i] > xmin, newXs[i] < xmax, newYs[i] > ymin, newYs[i] < ymax], axis=0))
+		# indexer = np.all(np.stack([newXs[i] > xmin, newXs[i] < xmax, newYs[i] > ymin, newYs[i] < ymax], axis=0))
 		indexer = np.ones(len(startXs[i]), dtype=bool)
 
 		ux = startXs[i][indexer]
@@ -50,14 +50,14 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		vx =   newXs[i][indexer]
 		vy =   newYs[i][indexer]
 
-		# Now remove points who traveled to far between frames
-		distances = np.sqrt(np.square(vx - ux) + np.square(vy - uy))
-		indexer = distances < max_dist 
-		indexer = np.ones(len(startXs[i]), dtype=bool)
-		ux = ux[indexer]
-		uy = uy[indexer]
-		vx = vx[indexer]
-		vy = vy[indexer]
+		# # Now remove points who traveled to far between frames
+		# distances = np.sqrt(np.square(vx - ux) + np.square(vy - uy))
+		# indexer = distances < max_dist 
+		# indexer = np.ones(len(startXs[i]), dtype=bool)
+		# ux = ux[indexer]
+		# uy = uy[indexer]
+		# vx = vx[indexer]
+		# vy = vy[indexer]
 
 		# Form our initial and final feature points in homogeneous coordinates
 		N = len(ux)
@@ -65,7 +65,9 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		v = np.stack([vx, vy, np.ones(N)])
 
 		# Use RANSAC to estimate T
-		H, inliers = ransac_est_affine(ux, uy, vx, vy, thresh)
+		# H, inliers = ransac_est_affine(ux, uy, vx, vy, thresh)
+		H = least_squares(inlier_cost_func, np.identity(3)[:2].reshape(6), args=(u, v))["x"].reshape(2, 3)
+		H = np.concatenate((H, np.array([[0, 0, 1]])))
 
 		# --------- Part 2: Update the ith bounding box ---------- #
 		
