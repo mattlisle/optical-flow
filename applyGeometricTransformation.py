@@ -37,10 +37,17 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		# --------- Part 1: Estimate the homography for a given bounding box ---------- #
 
 		# Remove points that lie outside the current box
-		xmin = np.amin(bbox[i, :, 0])
-		xmax = np.amax(bbox[i, :, 0])
-		ymin = np.amin(bbox[i, :, 1])
-		ymax = np.amax(bbox[i, :, 1])
+		xmin = max([np.amin(bbox[i, :, 0]), np.amin(newXs[i]) - 2.5*pad])
+		xmax = min([np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + 2.5*pad])
+		# print(np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + pad)
+		ymin = max([np.amin(bbox[i, :, 1]), np.amin(newYs[i]) - 2.5*pad])
+		ymax = min([np.amax(bbox[i, :, 1]), np.amax(newYs[i]) + 2.5*pad])
+		bbox[i] = np.array([xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin]).reshape(4, 2)
+
+		# xmin = np.amin(bbox[i, :, 0])
+		# xmax = np.amax(bbox[i, :, 0])
+		# ymin = np.amin(bbox[i, :, 1])
+		# ymax = np.amax(bbox[i, :, 1])
 
 		# indexer = np.all(np.stack([newXs[i] > xmin, newXs[i] < xmax, newYs[i] > ymin, newYs[i] < ymax], axis=0))
 		indexer = np.ones(len(startXs[i]), dtype=bool)
@@ -80,7 +87,6 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		corners[corners < 0] = 0
 		corners[0][corners[0] >= w] = w - 1
 		corners[1][corners[1] >= h] = h - 1
-
 
 		# Update the corners of the box
 		bbox[i, ...] = corners[:2].T

@@ -53,5 +53,5 @@ def ransac_est_affine(x1, y1, x2, y2, thresh):
 	yin = np.stack([x2[inlier_ind], y2[inlier_ind], np.ones(len(inlier_ind))])
 	T = least_squares(inlier_cost_func, Tbest[:2].reshape(6), args=(xin, yin))["x"].reshape(2, 3)
 
-	# print("Found %d matches..." % found)
+	print("Found %d matches..." % found)
 	return np.concatenate((T, np.array([[0, 0, 1]]))), inlier_ind

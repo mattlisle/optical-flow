@@ -20,7 +20,7 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, Ix, Iy, box):
 
 	# This will fail if there is overlap between the boxes
 
-	max_dist = 4
+	max_dist = 3
 	pad = 5
 
 	source = rgb2gray(img1)
@@ -39,14 +39,14 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, Ix, Iy, box):
 	distances = np.sqrt(np.square(newXs - startXs) + np.square(newYs - startYs))
 	avg_dist = np.mean(distances)
 	std_dist = np.std(distances)
-	indexer = np.logical_and(indexer, np.logical_and(distances < avg_dist + 4*std_dist, distances > avg_dist - 2*std_dist))
+	indexer = np.logical_and(indexer, distances < min([avg_dist + 3*std_dist, max_dist]))  #np.logical_and(distances < min([avg_dist + 3*std_dist, max_dist]), distances > avg_dist - 2*std_dist))
 	# avg_dist = np.mean(distances)
 	# std_dist = np.std(distances)
 	# indexer = np.logical_and(distances < avg_dist + 1.8*std_dist, distances > avg_dist - 1.8*std_dist)
 	if not np.all(indexer):
 		removed = len(indexer) - np.sum(indexer)
 		total = len(indexer)
-		print("Removed %d out of %d points" % (removed, total))
+		print("Removed %d out of %d points with [%f, %f] thresh" % (removed, total, avg_dist + 3*std_dist, avg_dist - 2*std_dist))
 
 	ux = startXs[indexer]
 	uy = startYs[indexer]

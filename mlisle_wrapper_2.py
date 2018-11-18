@@ -58,9 +58,11 @@ while ret:
 		newXs = np.copy(x)
 		newYs = np.copy(y)
 
-	thresh = .2 + .02 * a
+	thresh = .1 + .02 * a
 
 	ret, img2 = cap.read()
+	if not ret:
+		break
 	img2 = img2[...,::-1]
 
 	iterations = 1
