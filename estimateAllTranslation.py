@@ -101,7 +101,7 @@ def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 			error, gray1, indexer, Ix, Iy, potXs, potYs = calculateError(startXs[i], startYs[i], potXs, potYs, np.copy(gray1), np.copy(gray2), Ix, Iy, np.copy(bbox[i]))
 
 			startXs[i] = np.copy(potXs)
-			startYs[i] = np.copy(potYs)
+			startYs[i] = np.copy(potYs)	
 			tempOrigXs = tempOrigXs[indexer]
 			tempOrigYs = tempOrigYs[indexer]
 
@@ -111,6 +111,5 @@ def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 				newYs[i] = np.copy(potYs)
 				origXs[i] = np.copy(tempOrigXs)
 				origYs[i] = np.copy(tempOrigYs)
-			# print(i, iters, error)
 
 	return newXs, newYs, origXs, origYs

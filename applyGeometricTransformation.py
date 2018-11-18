@@ -24,7 +24,7 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 	from helpers import inlier_cost_func_translation
 	from ransac_est_affine import ransac_est_affine
 
-	F = len(startXs)
+	F = len(bbox)
 	max_dist = 100
 	pad = 5
 	gray = rgb2gray(img)
@@ -34,14 +34,27 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 
 	for i in range(F):
 
+		# If the item went of the screen, its bounding box could be empty
+		if not np.any(bbox[i]):
+			continue
+
 		# --------- Part 1: Estimate the homography for a given bounding box ---------- #
 
 		# Remove points that lie outside the current box
-		xmin = max([np.amin(bbox[i, :, 0]), np.amin(newXs[i]) - 2.5*pad])
-		xmax = min([np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + 2.5*pad])
+		# medium difficulty
+		# xmin = max([np.amin(bbox[i, :, 0]), np.amin(newXs[i]) - 2.5*pad])
+		# xmax = min([np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + 2.5*pad])
+		# # print(np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + pad)
+		# ymin = max([np.amin(bbox[i, :, 1]), np.amin(newYs[i]) - 2.5*pad])
+		# ymax = min([np.amax(bbox[i, :, 1]), np.amax(newYs[i]) + 2.5*pad])
+		# bbox[i] = np.array([xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin]).reshape(4, 2)
+
+		# easy difficulty
+		xmin = max([np.amin(bbox[i, :, 0]), np.amin(newXs[i]) - 2*pad])
+		xmax = min([np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + 2*pad])
 		# print(np.amax(bbox[i, :, 0]), np.amax(newXs[i]) + pad)
-		ymin = max([np.amin(bbox[i, :, 1]), np.amin(newYs[i]) - 2.5*pad])
-		ymax = min([np.amax(bbox[i, :, 1]), np.amax(newYs[i]) + 2.5*pad])
+		ymin = max([np.amin(bbox[i, :, 1]), np.amin(newYs[i]) - 2*pad])
+		ymax = min([np.amax(bbox[i, :, 1]), np.amax(newYs[i]) + 2*pad])
 		bbox[i] = np.array([xmin, ymin, xmin, ymax, xmax, ymax, xmax, ymin]).reshape(4, 2)
 
 		# xmin = np.amin(bbox[i, :, 0])
@@ -83,6 +96,14 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 		corners = np.matmul(H, corners)
 		corners = corners / corners[2]  # unnecessary for affine transformations
 		
+		# If the object has passed out of the image frame, get rid of it
+		if np.any(np.logical_or(corners[0] >= w, corners[0] < 0)) and np.any(np.logical_or(corners[1] >= h, corners[1] < 0)):
+			bbox[i] = np.zeros((4, 2))
+			output = gray
+			newXs[i] = vx
+			newYs[i] = vy
+			continue
+
 		# Restrict the bounding box to the image frame
 		corners[corners < 0] = 0
 		corners[0][corners[0] >= w] = w - 1

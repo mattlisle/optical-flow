@@ -35,18 +35,25 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, Ix, Iy, box):
 	ymin = max([np.amin(box[:, 1]) - pad, 0])
 	ymax = min([np.amax(box[:, 1]) + pad + 1, h])
 
+	# For medium video
+	# indexer = np.all(np.stack([newXs > xmin + pad, newXs < xmax - pad, newYs > ymin + pad, newYs < ymax - pad], axis=0), axis=0)
+	# distances = np.sqrt(np.square(newXs - startXs) + np.square(newYs - startYs))
+	# avg_dist = np.mean(distances)
+	# std_dist = np.std(distances)
+	# indexer = np.logical_and(indexer, distances < min([avg_dist + 3*std_dist, max_dist]))  #np.logical_and(distances < min([avg_dist + 3*std_dist, max_dist]), distances > avg_dist - 2*std_dist))
+
+	# For the easy video
 	indexer = np.all(np.stack([newXs > xmin + pad, newXs < xmax - pad, newYs > ymin + pad, newYs < ymax - pad], axis=0), axis=0)
 	distances = np.sqrt(np.square(newXs - startXs) + np.square(newYs - startYs))
 	avg_dist = np.mean(distances)
 	std_dist = np.std(distances)
-	indexer = np.logical_and(indexer, distances < min([avg_dist + 3*std_dist, max_dist]))  #np.logical_and(distances < min([avg_dist + 3*std_dist, max_dist]), distances > avg_dist - 2*std_dist))
-	# avg_dist = np.mean(distances)
-	# std_dist = np.std(distances)
-	# indexer = np.logical_and(distances < avg_dist + 1.8*std_dist, distances > avg_dist - 1.8*std_dist)
-	if not np.all(indexer):
-		removed = len(indexer) - np.sum(indexer)
-		total = len(indexer)
-		print("Removed %d out of %d points with [%f, %f] thresh" % (removed, total, avg_dist + 3*std_dist, avg_dist - 2*std_dist))
+	if avg_dist != 0:
+		indexer = np.logical_and(indexer, np.logical_and(distances < min([avg_dist + 3*std_dist, 4]), distances > avg_dist - 1.5*std_dist))
+	# indexer = np.ones(len(newXs), dtype=bool)
+	# if not np.all(indexer):
+	# 	removed = len(indexer) - np.sum(indexer)
+	# 	total = len(indexer)
+	# 	print("Removed %d out of %d points with [%f, %f] thresh" % (removed, total, avg_dist + 3*std_dist, avg_dist - std_dist))
 
 	ux = startXs[indexer]
 	uy = startYs[indexer]
@@ -63,6 +70,8 @@ def calculateError(startXs, startYs, newXs, newYs, img1, img2, Ix, Iy, box):
 
 	newXs = np.matmul(T, u)[0]
 	newYs = np.matmul(T, u)[1]
+	# newXs = vx
+	# newYs = vy
 
 	target_area = target[ymin: ymax, xmin: xmax]
 	source_area = source[ymin: ymax, xmin: xmax]
