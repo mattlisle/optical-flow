@@ -16,6 +16,29 @@ from estimateAllTranslation import estimateAllTranslation
 from applyGeometricTransformation import applyGeometricTransformation
 import argparse
 
+refPt = []
+def draw_box(event, x, y, flags, param):
+  # grab references to the global variables
+  global refPt, cropping
+  
+  # if the left mouse button was clicked, record the starting
+  # (x, y) coordinates and indicate that cropping is being
+  # performed
+  if event == cv2.EVENT_LBUTTONDOWN:
+    refPt.append((x,y))
+  
+  # check to see if the left mouse button was released
+  elif event == cv2.EVENT_LBUTTONUP:
+    # record the ending (x, y) coordinates and indicate that
+    # the cropping operation is finished
+    refPt.append((x, y))
+  
+  # draw a rectangle around the region of interest
+  # cv2.rectangle(display_img, refPt[0], refPt[1], (0, 255, 0), 2)
+  # cv2.imshow("Start Window", display_img)
+
+
+
 def main(video_file, output_filename): 
 	imgs = np.array([])
 	cap = cv2.VideoCapture(video_file)
@@ -23,9 +46,53 @@ def main(video_file, output_filename):
 	img1 = img1[...,::-1]
 	h, w, d = img1.shape
 
+	display_img = img1.copy()
+	display_img = cv2.cvtColor(display_img, cv2.COLOR_BGR2RGB)
+	cv2.namedWindow("Start Frame")
+	cv2.setMouseCallback("Start Frame", draw_box)
+
+	# Loop until the user is done drawing boxes
+	while True:
+		cv2.imshow("Start Frame", display_img)
+		key = cv2.waitKey(0)
+
+		if key == ord('q'):
+			break
+
+	# Destroy the drawing window
+	cv2.destroyAllWindows()
+
+	# Show the result
+	for i in range(int(len(refPt)/2)):
+		cv2.rectangle(display_img, refPt[2*i], refPt[(2*i)+1], (0,255,0), 2)
+
+	cv2.imshow("Result", display_img)
+	cv2.waitKey(0)
+	cv2.destroyAllWindows()
+
+	bboxes = []
+	for i in range(int(len(refPt)/2)):
+		bbox = []
+		start = refPt[2*i]
+		end = refPt[(2*i) + 1]
+		# Top Left and bottom right
+		box_corners = np.array([refPt[2*i], refPt[(2*i)+1]])
+		start_row, start_col, width, height = cv2.boundingRect(box_corners)
+
+		bbox = np.array([[start_row, start_col],
+							[start_row, start_col + width],
+							[start_row+height, start_col + width],
+							[start_row+height, start_col]])
+
+		bboxes.append(bbox)
+				
+
+
+
+
 	# For now, manually draw the bounding box and forget about cv2.boundingRect()
-	box1 = np.array([456, 182, 456, 279, 523, 279, 523, 182]).reshape(4, 2)
-	bbox = np.array([box1])
+	# box1 = np.array([456, 182, 456, 279, 523, 279, 523, 182]).reshape(4, 2)
+	# bbox = np.array([box1])
 
 	orig_box = np.copy(bbox)
 	centers = np.zeros((len(bbox), 2))
