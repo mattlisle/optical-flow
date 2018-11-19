@@ -4,8 +4,7 @@
   Date created: 11/4/2018
 
 	(INPUT) img: H × W matrix representing the grayscale input image
-	(INPUT) bbox: F × 4 × 2 matrix representing the four corners of the bounding box where F is the number of
-	objects you would like to track
+	(INPUT) bbox: F × 4 × 2 matrix representing the four corners of the bounding box where F is the number of objects you would like to track
 	(OUTPUT) x: N × F matrix representing the N row coordinates of the features across F objects
 	(OUTPUT) y: N × F matrix representing the N column coordinates of the features across F objects
 

@@ -1,14 +1,20 @@
 '''
   File name: estimateAllTranslation.py
-  Author: 
+  Author: Nikhil, Shiv, Matt
   Date created: 11/4/2018
 
 	(INPUT) startXs: object array representing the starting X coordinates of all the features in the first frame for all the bounding boxes
 	(INPUT) startYs: object array representing the starting Y coordinates of all the features in the first frame for all the bounding boxes
+	(INPUT) origXs: object array representing the X coordinates of all the features in the key frame for all the bounding boxes
+	(INPUT) origYs: object array representing the Y coordinates of all the features in the key frame for all the bounding boxes
 	(INPUT) img1: H × W × 3 matrix representing the first image frame
 	(INPUT) img2: H × W × 3 matrix representing the second image frame
+	(INPUT) bbox: F × 4 × 2 matrix representing the four new corners of the bounding box where F is the number of detected objects
+	(INPUT) params: constants specified depending on the rawVideo input
 	(OUTPUT) newXs: object array representing the new X coordinates of all the features in all the bounding boxes
 	(OUTPUT) newYs: object array representing the new Y coordinates of all the features in all the bounding boxes
+	(OUTPUT) origXs: object array representing the X coordinates of all the features in the key frame for all the bounding boxes
+	(OUTPUT) origYs: object array representing the Y coordinates of all the features in the key frame for all the bounding boxes
 '''
 
 

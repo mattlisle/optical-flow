@@ -1,11 +1,12 @@
 '''
   File name: objectTracking.py
-  Author: 
+  Author: Nikhil, Shiv, Matt
   Date created: 11/16/2018
 
 	(INPUT) rawVideo: The input video containing one or more objects
-	(OUTPUT) trackedVideo: The generated output video showing all the tracked features (please do try to show
-	the trajectories for all the features) on the object as well as the bounding boxes
+	(INPUT) output_filename: The filename for the output video given as a string with no extension
+	(INPUT) draw_boxes: boolean kwarg defaults to True and pre-defined boxes will be loaded, if set to false new boxes will be drawn
+	(OUTPUT) trackedVideo: The generated output video showing all the tracked features 
 
 '''
 import argparse
@@ -98,7 +99,7 @@ def objectTracking(rawVideo, output_filename, draw_boxes=False):
 				box = np.array([[start_x, start_y],
 										[start_x+width, start_y],
 										[start_x+width, start_y + height],
-										[start_x, start_y + width]])
+										[start_x, start_y + height]])
 
 				bbox.append(box)
 			
@@ -129,7 +130,7 @@ def objectTracking(rawVideo, output_filename, draw_boxes=False):
 	out.write(frame[..., ::-1])
 
 	# Loop through the remainder of the frames
-	while f < 100:
+	while True:
 		f += 1
 		print("Processing frame: %d..." % f, end="\r", flush=True)
 
@@ -159,7 +160,7 @@ def objectTracking(rawVideo, output_filename, draw_boxes=False):
 				centers[k] = np.array([np.mean(bbox[k, :, 0]), np.mean(bbox[k, :, 1])]).astype(int)
 
 			# Warp the image for the next iteration
-			newXs, newYs, bbox = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), np.copy(img2), k_pad)
+			newXs, newYs, bbox = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), k_pad)
 
 			# Handle when we've gotten rid of a bounding box
 			indexer = np.ones(len(bbox), dtype=bool)

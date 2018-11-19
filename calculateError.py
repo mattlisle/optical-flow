@@ -1,10 +1,25 @@
 '''
   File name: calculateError.py
-  Author: Matt
+  Author: Nikhil, Shiv, Matt
   Date created: 11/16/2018
 
-	(INPUT) 
-	(OUTPUT) 
+	(INPUT) startXs: object array representing the starting X coordinates of all the features in the first frame for all the bounding boxes
+	(INPUT) startYs: object array representing the starting Y coordinates of all the features in the first frame for all the bounding boxes
+	(INPUT) newXs: object array matrix representing the second X coordinates of all the features in the first frame for all the bounding boxes
+	(INPUT) newYs: object array matrix representing the second Y coordinates of all the features in the first frame for all the bounding boxes
+	(INPUT) img1: H × W × 3 matrix representing the first image frame
+	(INPUT) img2: H × W × 3 matrix representing the next image frame
+	(INPUT) Ix: H × W matrix representing the gradient along the X-direction
+	(INPUT) Iy: H × W matrix representing the gradient along the Y-direction
+	(INPUT) box: 4 × 2 matrix representing the four corners of the bounding box
+	(INPUT) params: constants specified depending on the rawVideo input
+	(OUTPUT) error: squared distance between tracked features in source and target images
+	(OUTPUT) source_warped: H x W matrix representing the source image after the transformation is applied to each bounding box
+	(OUTPUT) indexer: boolean array where a value of True represents an inler 
+	(OUTPUT) Ix: H × W matrix representing the gradient along the X-direction
+	(OUTPUT) Iy: H × W matrix representing the gradient along the Y-direction
+	(OUTPUT) newXs: object array matrix representing the second X coordinates of all the features in the first frame for all the bounding boxes
+	(OUTPUT) newYs: object array matrix representing the second Y coordinates of all the features in the first frame for all the bounding boxes
 '''
 
 

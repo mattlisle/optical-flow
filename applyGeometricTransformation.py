@@ -1,6 +1,6 @@
 '''
 	File name: applyGeometricTransformation.py
-	Author: 
+	Author: Nikhil, Shiv, Matt
 	Date created: 11/4/2018
 
 	(INPUT) startXs: object array representing the starting X coordinates of all the features in the first frame for all the bounding boxes
@@ -8,13 +8,14 @@
 	(INPUT) newXs: object array matrix representing the second X coordinates of all the features in the first frame for all the bounding boxes
 	(INPUT) newYs: object array matrix representing the second Y coordinates of all the features in the first frame for all the bounding boxes
 	(INPUT) bbox: F × 4 × 2 matrix representing the four new corners of the bounding box where F is the number of detected objects
+	(INPUT) img: H × W × 3 matrix representing the first image frame
+	(INPUT) k_pad: constant specified depending on the rawVideo input
 	(OUTPUT) Xs: object array matrix representing the X coordinates of the remaining features in all the bounding boxes after eliminating outliers
 	(OUTPUT) Ys: object array matrix representing the Y coordinates of the remaining features in all the bounding boxes after eliminating outliers
 	(OUTPUT) newbbox: F × 4 × 2 the bounding box position after geometric transformation
-	(OUTPUT) gray: the grayscale warped image for the next iteration of translation estimation
 '''
 
-def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, target, k_pad):
+def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, k_pad):
 	import numpy as np
 	from helpers import inlier_cost_func
 	from helpers import rgb2gray
@@ -24,7 +25,6 @@ def applyGeometricTransformation(startXs, startYs, newXs, newYs, bbox, img, targ
 	pad = 5
 	gray = rgb2gray(img)
 	output = np.copy(gray)
-	target = rgb2gray(target)
 	h, w = gray.shape
 
 	for i in range(F):
