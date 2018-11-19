@@ -19,6 +19,7 @@ from getFeatures import getFeatures
 from calculateError import calculateError
 from estimateAllTranslation import estimateAllTranslation
 from applyGeometricTransformation import applyGeometricTransformation
+import math
 
 # Global variable used for drawing the bounding boxes on the image
 refPt = []
@@ -98,7 +99,7 @@ def objectTracking(rawVideo, output_filename, draw_boxes=False):
 				box = np.array([[start_x, start_y],
 										[start_x+width, start_y],
 										[start_x+width, start_y + height],
-										[start_x, start_y + width]])
+										[start_x, start_y + height]])
 
 				bbox.append(box)
 			
@@ -150,6 +151,75 @@ def objectTracking(rawVideo, output_filename, draw_boxes=False):
 
 			# Switch to RGB
 			img2 = img2[...,::-1]
+
+			# Build Pyramid 1
+			L = np.copy(img1)
+			pyramid1 = [L]
+			for i in range(3):
+				h1, w1, c1 = pyramid1[i].shape
+				next_h, next_w = math.floor((h1 + 1)/2), math.floor((w1+1)/2)
+
+				# Pad image 1
+				p1 = np.zeros((h1+2, w1+2, 3))
+				p1[1:h1+1, 1:w1+1, :] = pyramid1[i]
+				p1[1:h1+1,0,:] = pyramid1[i][0:h1,0,:]
+				p1[1:h1+1,w1+1,:] = pyramid1[i][0:h1,w1-1,:]
+				p1[0,1:w1+1,:] = pyramid1[i][0,0:w1,:]
+				p1[h1+1,1:w1+1,:] = pyramid1[i][h1-1,0:w1,:]
+				p1[0,0,:] = (p1[0,1,:]+ p1[1,0,:]+ p1[1,1,:])/3
+				p1[0,w1+1,:] = (p1[0,w1,:]+ p1[1,w1+1,:]+ p1[1,w1,:])/3
+				p1[h1+1,w1+1,:] = (p1[h1,w1,:]+ p1[h1,w1+1,:]+ p1[h1+1,w1,:])/3
+				p1[h1+1,0,:] = (p1[h1,0,:]+ p1[h1,1,:]+ p1[h1+1,1,:])/3
+
+
+				hh, ww = np.meshgrid(np.arange(next_h), np.arange(next_w))
+
+				next_level = np.zeros((next_h, next_w, 3))
+
+				next_level = (.25 * p1[2*hh, 2*ww,:]) + (1/8) * (p1[2*hh-1,2*ww,:] + p1[2*hh+1,2*ww,:] + p1[2*hh,2*ww-1,:] + p1[2*hh,2*ww+1,:]) + (1/16) * (p1[2*hh-1,2*ww-1,:] + p1[2*hh+1,2*ww+1,:] + p1[2*hh-1,2*ww+1,:] + p1[2*hh+1,2*ww+1,:])
+
+				pyramid1.append(next_level)
+
+			for i in range(1,len(pyramid1),2):
+				pyramid1[i] = np.transpose(pyramid1[i], axes=(1,0,2))
+
+			for i in range(len(pyramid1)):
+				cv2.imwrite('Temp{0}.png'.format(i), pyramid1[i])
+
+
+			# Build Pyramid 2
+			L = np.copy(img2)
+			pyramid2 = [L]
+			for i in range(3):
+				h2, w2, c2 = pyramid2[i].shape
+				next_h, next_w = math.floor((h2 + 1)/2), math.floor((w2+1)/2)
+
+				# Pad image 1
+				p2 = np.zeros((h2+2, w2+2, 3))
+				p2[1:h2+1, 1:w2+1, :] = pyramid2[i]
+				p2[1:h2+1,0,:] = pyramid2[i][0:h2,0,:]
+				p2[1:h2+1,w2+1,:] = pyramid2[i][0:h2,w2-1,:]
+				p2[0,1:w2+1,:] = pyramid2[i][0,0:w2,:]
+				p2[h2+1,1:w2+1,:] = pyramid2[i][h2-1,0:w2,:]
+				p2[0,0,:] = (p2[0,1,:]+ p2[1,0,:]+ p2[1,1,:])/3
+				p2[0,w2+1,:] = (p2[0,w2,:]+ p2[1,w2+1,:]+ p2[1,w2,:])/3
+				p2[h2+1,w2+1,:] = (p2[h2,w2,:]+ p2[h2,w2+1,:]+ p2[h2+1,w2,:])/3
+				p2[h2+1,0,:] = (p2[h2,0,:]+ p2[h2,1,:]+ p2[h2+1,1,:])/3
+
+
+				hh, ww = np.meshgrid(np.arange(next_h), np.arange(next_w))
+
+				next_level = np.zeros((next_h, next_w, 3))
+
+				next_level = (.25 * p2[2*hh, 2*ww,:]) + (1/8) * (p2[2*hh-1,2*ww,:] + p2[2*hh+1,2*ww,:] + p2[2*hh,2*ww-1,:] + p2[2*hh,2*ww+1,:]) + (1/16) * (p2[2*hh-1,2*ww-1,:] + p2[2*hh+1,2*ww+1,:] + p2[2*hh-1,2*ww+1,:] + p2[2*hh+1,2*ww+1,:])
+
+				pyramid2.append(next_level)
+
+			for i in range(1,len(pyramid2),2):
+				pyramid2[i] = np.transpose(pyramid2[i], axes=(1,0,2))
+
+			for i in range(len(pyramid1)):
+				cv2.imwrite('temp{0}.png'.format(i), pyramid2[i])
 
 			# Get the new feature locations in the next frame
 			updatex, updatey, x, y = estimateAllTranslation(np.copy(newXs), np.copy(newYs), np.copy(x), np.copy(y), np.copy(img1), np.copy(img2), np.copy(bbox), params)
