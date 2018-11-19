@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from helpers import rgb2gray
-from helpers import generate_output_frame
+from helpers import generate_output_frame, gen_video
 from getFeatures import getFeatures
 from calculateError import calculateError
 from estimateAllTranslation import estimateAllTranslation
@@ -70,29 +70,24 @@ def main(video_file, output_filename):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-	bboxes = []
+	bbox = []
 	for i in range(int(len(refPt)/2)):
-		bbox = []
-		start = refPt[2*i]
-		end = refPt[(2*i) + 1]
+
 		# Top Left and bottom right
 		box_corners = np.array([refPt[2*i], refPt[(2*i)+1]])
-		start_row, start_col, width, height = cv2.boundingRect(box_corners)
+		start_x, start_y, width, height = cv2.boundingRect(box_corners)
 
-		bbox = np.array([[start_row, start_col],
-							[start_row, start_col + width],
-							[start_row+height, start_col + width],
-							[start_row+height, start_col]])
+		# Create the four coordinates for the box and reshape		
+		box = np.array([[start_x, start_y],
+                                        [start_x+width, start_y],
+                                        [start_x+width, start_y + height],
+                                        [start_x, start_y + width]])
 
-		bboxes.append(bbox)
+		bbox.append(box)
 				
 
-
-
-
-	# For now, manually draw the bounding box and forget about cv2.boundingRect()
-	# box1 = np.array([456, 182, 456, 279, 523, 279, 523, 182]).reshape(4, 2)
-	# bbox = np.array([box1])
+	# Turn it into a numpy array
+	bbox = np.array(bbox)
 
 	orig_box = np.copy(bbox)
 	centers = np.zeros((len(bbox), 2))
@@ -107,7 +102,6 @@ def main(video_file, output_filename):
 	f = 0
 	frame = generate_output_frame(np.copy(img1), bbox, np.copy(trajectory_indexer), np.copy(newXs), np.copy(newYs))
 	frame = Image.fromarray(frame)
-	# frame.save("easy_frame%d.jpg" % f)
 
 	# Store the processed frames so we can turn it into a video later
 	all_frames = []
@@ -175,7 +169,7 @@ def main(video_file, output_filename):
 
 	cap.release()
 
-	np_frames = np.array([np.array(f) for f in all_frames])
+	np_frames = np.array([cv2.cvtColor(np.array(f), cv2.COLOR_BGR2RGB) for f in all_frames])
 	gen_video(np.array(np_frames), "{0}.avi".format(output_filename))
 
 
