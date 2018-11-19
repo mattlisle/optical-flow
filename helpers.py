@@ -77,7 +77,8 @@ def anms(cimg, max_pts, offsetx, offsety):
 
   # If we've asked for more than we've got, let the user know
   if max_pts > len(x):
-    print("Actual number of points: " + str(len(x)))
+    # print("Actual number of points: " + str(len(x)))
+    pass
 
   # Otherwise cut out the fat and index the max radius
   else:
@@ -94,19 +95,6 @@ def inlier_cost_func(H, x, y):
   # H = H.reshape(3, 3)
   estimates = np.matmul(H, x)
   residuals = y - estimates / estimates[2]
-
-  h, num_inliers = x.shape
-
-  return residuals.reshape(h * num_inliers)
-
-def inlier_cost_func_translation(t, x, y):
-  import numpy as np
-
-  H = np.identity(3)
-  H[0, 2] = t[0]
-  H[1, 2] = t[1]
-  estimates = np.matmul(H, x)
-  residuals = y - estimates
 
   h, num_inliers = x.shape
 
@@ -252,4 +240,3 @@ def gen_video(frames, filename):
       out.write(frames[i])
 
   out.release()
-
