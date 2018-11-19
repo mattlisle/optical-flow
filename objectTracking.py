@@ -8,18 +8,44 @@
 	the trajectories for all the features) on the object as well as the bounding boxes
 
 '''
+import argparse
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from helpers import rgb2gray
+from helpers import generate_output_frame
+from helpers import gen_video
+from getFeatures import getFeatures
+from calculateError import calculateError
+from estimateAllTranslation import estimateAllTranslation
+from applyGeometricTransformation import applyGeometricTransformation
 
-def objectTracking(rawVideo, output_filename="output.avi", draw_boxes=False):
-	import cv2
-	import numpy as np
-	import matplotlib.pyplot as plt
-	from helpers import rgb2gray
-	from helpers import generate_output_frame
-	from helpers import gen_video
-	from getFeatures import getFeatures
-	from calculateError import calculateError
-	from estimateAllTranslation import estimateAllTranslation
-	from applyGeometricTransformation import applyGeometricTransformation
+# Global variable used for drawing the bounding boxes on the image
+refPt = []
+
+def draw_box(event, x, y, flags, param):
+  # grab references to the global variables
+  global refPt
+  
+  # if the left mouse button was clicked, record the starting (x, y) coordinates
+  if event == cv2.EVENT_LBUTTONDOWN:
+    refPt.append((x,y))
+  
+  # check to see if the left mouse button was released
+  elif event == cv2.EVENT_LBUTTONUP:
+    # record the ending (x, y) coordinates 
+    refPt.append((x, y))
+  
+
+def objectTracking(rawVideo, output_filename, draw_boxes=False):
+	imgs = np.array([])
+	cap = cv2.VideoCapture(rawVideo)
+	ret, img1 = cap.read()
+	img1 = img1[...,::-1]
+	h, w, d = img1.shape
+
+	fourcc = cv2.VideoWriter_fourcc(*'XVID')
+	out = cv2.VideoWriter("{0}.avi".format(output_filename), fourcc, 20.0, (w,h))
 
 	# Set parameters based on which video it is
 	if rawVideo == "Easy.mp4":
@@ -36,17 +62,54 @@ def objectTracking(rawVideo, output_filename="output.avi", draw_boxes=False):
 		print("Invalid path - valid videos are 'Easy.mp4' and 'Medium.mp4'")
 		return None	
 
-	imgs = np.array([])
-	cap = cv2.VideoCapture(rawVideo)
-	ret, img1 = cap.read()
-	img1 = img1[...,::-1]
-	h, w, d = img1.shape
+	if draw_boxes:
+		display_img = img1.copy()
+		display_img = cv2.cvtColor(display_img, cv2.COLOR_BGR2RGB)
+		cv2.namedWindow("Start Frame")
+		cv2.setMouseCallback("Start Frame", draw_box)
 
-	fourcc = cv2.VideoWriter_fourcc(*'XVID')
-	out = cv2.VideoWriter(output_filename, fourcc, 20.0, (w,h))
+		# Loop until the user is done drawing boxes
+		while True:
+				cv2.imshow("Start Frame", display_img)
+				key = cv2.waitKey(0)
 
-	# Load the bounding boxes that were drawn manually
-	bbox = np.load("bbox_" + difficulty + ".npy")
+				if key == ord('q'):
+					break
+
+		# Destroy the drawing window
+		cv2.destroyAllWindows()
+
+		# Show the result
+		for i in range(int(len(refPt)/2)):
+				cv2.rectangle(display_img, refPt[2*i], refPt[(2*i)+1], (0,255,0), 2)
+
+		cv2.imshow("Result", display_img)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
+
+		bbox = []
+		for i in range(int(len(refPt)/2)):
+
+				# Top Left and bottom right
+				box_corners = np.array([refPt[2*i], refPt[(2*i)+1]])
+				start_x, start_y, width, height = cv2.boundingRect(box_corners)
+
+				# Create the four coordinates for the box and reshape		
+				box = np.array([[start_x, start_y],
+										[start_x+width, start_y],
+										[start_x+width, start_y + height],
+										[start_x, start_y + width]])
+
+				bbox.append(box)
+			
+
+		# Turn it into a numpy array
+		bbox = np.array(bbox)
+	else:
+		# Load the bounding boxes that were drawn manually
+		bbox = np.load("bbox_" + difficulty + ".npy")
+            
+
 	orig_box = np.copy(bbox)
 	centers = np.zeros((len(bbox), 2))
 
@@ -66,7 +129,7 @@ def objectTracking(rawVideo, output_filename="output.avi", draw_boxes=False):
 	out.write(frame[..., ::-1])
 
 	# Loop through the remainder of the frames
-	while True:
+	while f < 100:
 		f += 1
 		print("Processing frame: %d..." % f, end="\r", flush=True)
 
@@ -151,3 +214,19 @@ def objectTracking(rawVideo, output_filename="output.avi", draw_boxes=False):
 	out.release()
 
 	return None
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-V", "--video", required=True, help="name of the MP4 file to analyze")
+    parser.add_argument("-O", "--outputVideo", required=True, help="name of the output video without extension (AVI file)")
+    parser.add_argument("-b", "--boundingBox", required=False, action='store_true', help="include if you want to draw the bounding boxes manually instead of using prebuilt ones")
+    
+    args = vars(parser.parse_args())
+
+    video_file = args['video']
+    output_filename = args['outputVideo']
+    draw_bounding_box = args['boundingBox']
+    objectTracking(video_file, output_filename, draw_bounding_box)
