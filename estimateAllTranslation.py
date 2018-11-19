@@ -12,12 +12,11 @@
 '''
 
 
-def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
+def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox, params):
 	import numpy as np
 	from helpers import rgb2gray
 	from helpers import interp2
 	from scipy import signal
-	import matplotlib.pyplot as plt
 	from calculateError import calculateError
 
 	# ---------- Part 1: Setup ---------- #
@@ -56,7 +55,7 @@ def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 	A = np.zeros((window**2, 2))
 	b = np.zeros((window**2, 1))
 
-	# For now just running one iteration, not sure where the iterations are supposed to happen
+	# Iterate for each bounding box as necessary
 	for i in range(F):
 		error = np.nan_to_num(np.Inf)
 		min_error = error.copy()
@@ -65,6 +64,7 @@ def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 		tempOrigXs = np.copy(origXs[i])
 		tempOrigYs = np.copy(origYs[i])
 
+		# Run for a max of 5 iterations or until the average squared distance between ea feat pt value is less than 5k
 		while error > 5000 and iters < 5:
 			N = len(startXs[i])
 			potXs = np.zeros(N)
@@ -98,13 +98,15 @@ def estimateAllTranslation(startXs, startYs, origXs, origYs, img1, img2, bbox):
 				potXs[j] = startXs[i][j] + translation[0]
 				potYs[j] = startYs[i][j] + translation[1]
 
-			error, gray1, indexer, Ix, Iy, potXs, potYs = calculateError(startXs[i], startYs[i], potXs, potYs, np.copy(gray1), np.copy(gray2), Ix, Iy, np.copy(bbox[i]))
+			# Calculate the error
+			error, gray1, indexer, Ix, Iy, potXs, potYs = calculateError(startXs[i], startYs[i], potXs, potYs, np.copy(gray1), np.copy(gray2), Ix, Iy, np.copy(bbox[i]), params)
 
 			startXs[i] = np.copy(potXs)
 			startYs[i] = np.copy(potYs)	
 			tempOrigXs = tempOrigXs[indexer]
 			tempOrigYs = tempOrigYs[indexer]
 
+			# If we did better this time, save the results
 			if error < min_error:
 				min_error = error.copy()
 				newXs[i] = np.copy(potXs)

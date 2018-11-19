@@ -77,7 +77,8 @@ def anms(cimg, max_pts, offsetx, offsety):
 
   # If we've asked for more than we've got, let the user know
   if max_pts > len(x):
-    print("Actual number of points: " + str(len(x)))
+    # print("Actual number of points: " + str(len(x)))
+    pass
 
   # Otherwise cut out the fat and index the max radius
   else:
@@ -94,19 +95,6 @@ def inlier_cost_func(H, x, y):
   # H = H.reshape(3, 3)
   estimates = np.matmul(H, x)
   residuals = y - estimates / estimates[2]
-
-  h, num_inliers = x.shape
-
-  return residuals.reshape(h * num_inliers)
-
-def inlier_cost_func_translation(t, x, y):
-  import numpy as np
-
-  H = np.identity(3)
-  H[0, 2] = t[0]
-  H[1, 2] = t[1]
-  estimates = np.matmul(H, x)
-  residuals = y - estimates
 
   h, num_inliers = x.shape
 
@@ -222,21 +210,3 @@ def interp2(v, xq, yq):
   if dim_input == 2:
     return interp_val.reshape(q_h,q_w)
   return interp_val
-
-def est_affine(x1, x2):
-  import numpy as np
-
-  A = np.zeros((6, 6))
-
-  A[:3] = np.pad(x1.T, ((0, 0), (0, 3)), mode="constant")
-  A[3:] = np.pad(x1.T, ((0, 0), (3, 0)), mode="constant")
-
-  b = np.concatenate((x2[0], x2[1])).reshape(6, 1)
-
-  try:
-    Ainv = np.linalg.inv(A)
-    T = np.concatenate((np.matmul(Ainv, b).reshape(2, 3), np.array([[0, 0, 1]])))
-  except np.linalg.LinAlgError:
-    T = np.identity(3)
-
-  return T

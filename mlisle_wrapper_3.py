@@ -20,7 +20,8 @@ cap = cv2.VideoCapture("Easy.mp4")
 ret, img1 = cap.read()
 img1 = img1[...,::-1]
 h, w, d = img1.shape
-
+k_pad = 2
+params = [4, 1, 3, 1, 1.5]
 # For now, manually draw the bounding box and forget about cv2.boundingRect()
 box1 = np.array([287, 187, 397, 187, 397, 264, 287, 264]).reshape(4, 2)
 box2 = np.array([227, 127, 279, 127, 279, 172, 227, 172]).reshape(4, 2)
@@ -68,13 +69,13 @@ while True:
 		img2 = img2[...,::-1]
 
 		# Get the new feature locations in the next frame
-		updatex, updatey, x, y = estimateAllTranslation(np.copy(newXs), np.copy(newYs), np.copy(x), np.copy(y), np.copy(img1), np.copy(img2), np.copy(bbox))
+		updatex, updatey, x, y = estimateAllTranslation(np.copy(newXs), np.copy(newYs), np.copy(x), np.copy(y), np.copy(img1), np.copy(img2), np.copy(bbox), params)
 
 		for k in range(len(bbox)):
 			centers[k] = np.array([np.mean(bbox[k, :, 0]), np.mean(bbox[k, :, 1])]).astype(int)
 
 		# Warp the image for the next iteration
-		newXs, newYs, bbox, warped = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), np.copy(img2), thresh)
+		newXs, newYs, bbox = applyGeometricTransformation(np.copy(x), np.copy(y), updatex, updatey, np.copy(orig_box), np.copy(img1), np.copy(img2), k_pad)
 
 		indexer = np.ones(len(bbox), dtype=bool)
 		for k in range(len(bbox)):
